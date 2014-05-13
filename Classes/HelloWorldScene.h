@@ -2,6 +2,7 @@
 #define __HELLOWORLD_SCENE_H__
 
 #include "cocos2d.h"
+#include "HttpModel.h"
 
 class HelloWorld : public cocos2d::CCLayer
 {
@@ -21,10 +22,12 @@ public:
     void send(CCObject*);
     void receive(CCObject*);
     
+    void http(CCObject*);
     void *testR;
     
     virtual void update(float);
     
+    void response(bool suc, std::string, void*);
     // implement the "static node()" method manually
     CREATE_FUNC(HelloWorld);
 };

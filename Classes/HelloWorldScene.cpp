@@ -2,6 +2,8 @@
 #include "AppMacros.h"
 #include "RedisInterface.h"
 #include "cocos-ext.h"
+#include "HttpModel.h"
+
 USING_NS_CC;
 
 using namespace ui;
@@ -85,9 +87,11 @@ bool HelloWorld::init()
     CCMenuItemLabel *send = CCMenuItemLabel::create(CCLabelTTF::create("send", "", 100), this, menu_selector(HelloWorld::send));
     //start receive thread
     CCMenuItemLabel *receive = CCMenuItemLabel::create(CCLabelTTF::create("receive", "", 100), this, menu_selector(HelloWorld::receive));
+    CCMenuItemLabel *http = CCMenuItemLabel::create(CCLabelTTF::create("http", "", 100), this, menu_selector(HelloWorld::http));
+    
                                                        
     
-    CCMenu *menu = CCMenu::create(record, stop, play, send, receive, NULL);
+    CCMenu *menu = CCMenu::create(record, stop, play, send, receive, http, NULL);
     addChild(menu);
     menu->setPosition(ccp(300, 300));
     menu->setScale(0.25);
@@ -116,6 +120,20 @@ void HelloWorld::update(float time) {
             CCLog("read data %s %s", channel.c_str(), content.c_str());
         }
     }
+}
+void HelloWorld::http(cocos2d::CCObject *ps){
+    HttpModel *hm = HttpModel::getInstance();
+    std::map<std::string, std::string> postData;
+    
+    hm->addRequest("login", postData, this, MYHTTP_SEL(HelloWorld::response), NULL);
+}
+
+void HelloWorld::response(bool suc, std::string s, void*param){
+    rapidjson::Document d;
+    d.Parse<0>(s.c_str());
+    printf("name is %s\n", d["loginName"].GetString());
+    
+    //printf("world response name %s\n", d["loginName"].GetString());
 }
 void HelloWorld::receive(cocos2d::CCObject *pSender){
     testR = createRedis();
