@@ -17,6 +17,13 @@ public:
     
     void record(CCObject *pSender);
     void stop(CCObject*);
+    void play(CCObject*);
+    void send(CCObject*);
+    void receive(CCObject*);
+    
+    void *testR;
+    
+    virtual void update(float);
     
     // implement the "static node()" method manually
     CREATE_FUNC(HelloWorld);
