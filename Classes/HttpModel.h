@@ -36,7 +36,7 @@ public:
     //std::vector<Request> requestList;
     HttpModel();
     
-    void addRequest(std::string url, std::map<std::string, std::string> postData, CCObject *object, MyHttpResp pSelector, void *param);
+    void addRequest(std::string url, std::string method, std::map<std::string, std::string> postData, CCObject *object, MyHttpResp pSelector, void *param);
     //doRequest();
     void handleHttp(CCHttpClient*, CCHttpResponse*);
 };

@@ -7,6 +7,11 @@
 //
 
 #include "HttpModel.h"
+#include <cctype>
+#include <iomanip>
+#include <sstream>
+
+
 using namespace std;
 
 static HttpModel *s_http = NULL;
@@ -25,10 +30,36 @@ struct TempData {
     MyHttpResp psel;
     void *param;
 };
-void HttpModel::addRequest(string url, std::map<string, string> postData, CCObject *object, MyHttpResp psel, void *param){
+
+string url_encode(string value){
+    ostringstream escaped;
+    escaped.fill('0');
+    escaped << hex;
+    
+    for (string::const_iterator i = value.begin(), n = value.end(); i != n; ++i) {
+        string::value_type c = (*i);
+        if (isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+            escaped << c;
+        }
+        else if (c == ' ')  {
+            escaped << '+';
+        }
+        else {
+            escaped << '%' << setw(2) << ((int) c) << setw(0);
+        }
+    }
+    
+    return escaped.str();
+}
+void HttpModel::addRequest(string url, string method, std::map<string, string> postData, CCObject *object, MyHttpResp psel, void *param){
     CCHttpRequest *request = new CCHttpRequest();
-    request->setUrl((baseUrl+url).c_str());
-    request->setRequestType(CCHttpRequest::kHttpGet);
+    
+    if (method == "POST") {
+        request->setRequestType(CCHttpRequest::kHttpPost);
+    } else {
+        request->setRequestType(CCHttpRequest::kHttpGet);
+    }
+    
     request->setResponseCallback(this, httpresponse_selector(HttpModel::handleHttp));
     request->setTag("test request");
     TempData *td = new TempData();
@@ -36,6 +67,27 @@ void HttpModel::addRequest(string url, std::map<string, string> postData, CCObje
     td->psel = psel;
     td->param = param;
     request->setUserData(td);
+    string pd;
+    bool first = true;
+    
+    for (std::map<string, string>::iterator iter=postData.begin(); iter != postData.end(); ++iter) {
+        if (!first) {
+            pd = pd+"&";
+        }
+        pd += url_encode((*iter).first);
+        pd += "=";
+        pd += url_encode((*iter).second);
+        first = false;
+    }
+    CCLog("post data is %s", pd.c_str());
+    
+    if (method == "POST") {
+        request->setUrl((baseUrl+url).c_str());
+        request->setRequestData(pd.c_str(), pd.size());
+    }else {
+        request->setUrl((baseUrl+url+"?"+pd).c_str());
+    }
+    
     
     
     CCHttpClient::getInstance()->send(request);

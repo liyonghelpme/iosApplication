@@ -124,8 +124,9 @@ void HelloWorld::update(float time) {
 void HelloWorld::http(cocos2d::CCObject *ps){
     HttpModel *hm = HttpModel::getInstance();
     std::map<std::string, std::string> postData;
-    
-    hm->addRequest("login", postData, this, MYHTTP_SEL(HelloWorld::response), NULL);
+    postData["loginName"] = "xiaoming";
+    postData["password"] = "123345";
+    hm->addRequest("login", "GET", postData, this, MYHTTP_SEL(HelloWorld::response), NULL);
 }
 
 void HelloWorld::response(bool suc, std::string s, void*param){
