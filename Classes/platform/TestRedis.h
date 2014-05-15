@@ -16,7 +16,9 @@
     
     //redisAsyncContext *context;
     NSMutableArray *chatInfo;
+    //bool connectYet;
 }
+-(id) init;
 -(void) connect;
 -(void) sendVoice:(const char *)fn;
 +(id)sharedRedis;
@@ -28,4 +30,5 @@
 -(void) myThreadMainMethod:(id )obj;
 -(BOOL) readData:(const char**)cha c:(const char**)con;
 
+-(void) redisSendText:(const char *)text;
 @end

@@ -8,6 +8,12 @@
 
 #import "TestRedis.h"
 #include "stdio.h"
+void *receive = NULL;
+void startReceiveRedis(){
+    receive = createRedis();
+    connectRedis(receive);
+    runSubscribe(receive);
+}
 
 @implementation TestRedis
 +(id)sharedRedis{
@@ -15,8 +21,12 @@
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         sh = [[self alloc] init];
+        
     });
     return sh;
+}
+-(id)init{
+    //connectYet = false;
 }
 
 void *createRedis() {
@@ -109,12 +119,22 @@ bool readSubData(void *c, std::string* cha, std::string *con){
     return NO;
 }
 
+//当未连接的时候连接服务器
+//当连接失败 返回NULL
 void *connect(){
-    id tr = [TestRedis sharedRedis];
+    TestRedis *tr = [TestRedis sharedRedis];
+    if (tr->redis != nil) {
+        return tr;
+    }
     [tr connect];
+    if (tr->redis == nil) {
+        return NULL;
+    }
     return tr;
 }
 
+
+//阻塞连接 会block掉整个程序 需要使用 Aynchronized 来做连接 或者 采用多线程 来做连接
 -(void) connect{
     redis = [ObjCHiredis redis:@"127.0.0.1" on:[NSNumber numberWithInt:6379]];
     
@@ -162,6 +182,18 @@ void *connect(){
 void startSend(const char *fn){
     id tr = [TestRedis sharedRedis];
     [tr sendVoice:fn];
+}
+
+void sendText(std::string text){
+    id tr = [TestRedis sharedRedis];
+    [tr redisSendText:text.c_str()];
+}
+
+//发送命令也要一个异步的线程来处理才行
+-(void)redisSendText:(const char *)text{
+    NSString *cmd = [NSString stringWithFormat:@"publish chat %s", text];
+    id retVal = [redis command:cmd];
+    NSLog([NSString stringWithFormat:@"retval %@", retVal]);
 }
 
 @end

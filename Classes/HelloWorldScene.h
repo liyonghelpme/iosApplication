@@ -3,6 +3,9 @@
 
 #include "cocos2d.h"
 #include "HttpModel.h"
+#include "cocos-ext.h"
+
+using namespace cocos2d::ui;
 
 class HelloWorld : public cocos2d::CCLayer
 {
@@ -26,6 +29,8 @@ public:
     void *testR;
     
     virtual void update(float);
+    void onLeft(CCObject*, cocos2d::ui::TouchEventType type);
+    void selectItem(CCObject *, ListViewEventType);
     
     void response(bool suc, std::string, void*);
     // implement the "static node()" method manually

@@ -29,6 +29,8 @@ THE SOFTWARE.
 
 #include "HelloWorldScene.h"
 #include "AppMacros.h"
+#include "WorldCup.h"
+#include "ChatView.h"
 
 USING_NS_CC;
 using namespace std;
@@ -48,12 +50,13 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
     pDirector->setOpenGLView(pEGLView);
 	CCSize frameSize = pEGLView->getFrameSize();
-
+    CCLog("frame Size is %f %f", frameSize.width, frameSize.height);
     // Set the design resolution
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT) || (CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
     pEGLView->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, kResolutionShowAll);
 #else
-    pEGLView->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, kResolutionNoBorder);
+    //pEGLView->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, kResolutionNoBorder);
+    pEGLView->setDesignResolutionSize(frameSize.width, frameSize.height, kResolutionNoBorder);
 #endif
 
     
@@ -85,6 +88,8 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
         pDirector->setContentScaleFactor(MIN(smallResource.size.height/designResolutionSize.height, smallResource.size.width/designResolutionSize.width));
     }
+    pDirector->setContentScaleFactor(1);
+    
 
 
     // set searching path
@@ -97,8 +102,13 @@ bool AppDelegate::applicationDidFinishLaunching() {
     pDirector->setAnimationInterval(1.0 / 60);
 
     // create a scene. it's an autorelease object
-    CCScene *pScene = HelloWorld::scene();
-
+    //CCScene *pScene = HelloWorld::scene();
+    
+    //CCScene *pScene = WorldCup::scene();
+    
+    CCScene *pScene = ChatView::scene();
+    
+    
     // run
     pDirector->runWithScene(pScene);
 

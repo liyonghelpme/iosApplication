@@ -16,6 +16,8 @@ void *startRecord();
 void *stopRecord();
 void startPlay();
 void startSend(const char*);
+void sendText(std::string);
+
 const char *getFileName();
 
 
@@ -28,4 +30,7 @@ bool readSubData(void *, std::string *, std::string *);
 //void receiveData(const char*, unsigned int length);
 //void conCallback(redisAsyncContext *, void *);
 
+extern void *receive;
+
+void startReceiveRedis();
 #endif

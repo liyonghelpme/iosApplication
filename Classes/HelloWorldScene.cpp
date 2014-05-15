@@ -107,8 +107,146 @@ bool HelloWorld::init()
 	this->addChild(ui);
     */
     
+    
+    //test UIListView
+    UILayer *lay = UILayer::create();
+    addChild(lay);
+    
+    /*
+    UIWidget *wid = GUIReader::shareReader()->widgetFromJsonFile("UITest/UITest.json");
+    lay->addWidget(wid);
+    
+    CCSize size = CCDirector::sharedDirector()->getWinSize();
+    CCSize rootSize = wid->getSize();
+    lay->setPosition(CCPoint((size.width-rootSize.width)/2, (size.height-rootSize.height)/2));
+    
+    CCLog("size is %f %f %f %f", size.width, size.height, rootSize.width, rootSize.height);
+    
+    
+    
+    Button *left_button = static_cast<Button*>(UIHelper::seekWidgetByName(wid, "left_Button"));
+    left_button->addTouchEventListener(this, toucheventselector(HelloWorld::onLeft));
+    
+    
+    UILabel *lab = UILabel::create();
+    lab->setText("Test Lab");
+    lab->setFontName("Marker Felt");
+    lab->setFontSize(32);
+    lab->setAnchorPoint(ccp(0.5, -1));
+    lab->setPosition(ccp(rootSize.width/2, rootSize.height/2));
+    lay->addWidget(lab);
+    
+    CCArray *arr = CCArray::create();
+    CC_SAFE_RETAIN(arr);
+    
+    for(int i=0; i < 20; i++) {
+        CCString *cs = CCString::createWithFormat("listItem %d", i);
+        arr->addObject(cs);
+    }
+    
+    CCSize frameSize = CCDirector::sharedDirector()->getWinSizeInPixels();
+    CCLog("pixel Size %f %f", frameSize.width, frameSize.height);
+     */
+    
+    /*
+    UIListView *lv = UIListView::create();
+    lv->setDirection(SCROLLVIEW_DIR_VERTICAL);
+    lv->setTouchEnabled(true);
+    lv->setBounceEnabled(true);
+    //lv->setBackGroundColor(ccc3(102, 10, 20));
+    lv->setSize(frameSize);
+    lv->setPosition(ccp(frameSize.width/2, frameSize.height/2));
+    lv->addEventListenerListView(this, listvieweventselector(HelloWorld::selectItem));
+    lay->addWidget(lv);
+    lv->setPosition(ccp(0, 0));
+    lay->setPosition(ccp(0, 0));
+    
+    lv->setItemsMargin(10);
+    
+    UIButton *db = UIButton::create();
+    db->setName("TestButton");
+    db->setTouchEnabled(true);
+    db->loadTextures("UITest/r1.png", "UITest/r2.png", "");
+    
+    
+    Layout *di = Layout::create();
+    di->setTouchEnabled(true);
+    di->setSize(db->getSize());
+    db->setPosition(ccp(di->getSize().width/2, di->getSize().height/2));
+    di->addChild(db);
+    lv->setItemModel(di);
+    int count = arr->count();
+    for(int i=0; i < count/4; i++) {
+        lv->pushBackDefaultItem();
+    }
+    for (int i=0; i < count/4; i++) {
+        lv->insertDefaultItem(1);
+    }
+    for(int i=0; i < count/4; i++){
+        UIButton *cb = UIButton::create();
+        cb->setName("custom button");
+        cb->setTouchEnabled(true);
+        cb->loadTextures("f1.png", "f2.png", "");
+        cb->setScale9Enabled(true);
+        cb->setSize(db->getSize());
+        
+        
+        Layout *cl = Layout::create();
+        cl->setSize(cb->getSize());
+        cb->setPosition(ccp(cl->getSize().width/2, cl->getSize().height/2));
+        cl->addChild(cb);
+        
+        lv->pushBackCustomItem(cl);
+        
+    }
+    */
+    /*
+    CCArray *items = lv->getItems();
+    int ic = items->count();
+    for (int i=0; i < ic; i++) {
+        
+    }
+    */
+    
+    /*
+    Layout *title = Layout::create();
+    lay->addWidget(title);
+    title->setPositionPercent(ccp(0, 0.9));
+    title->setAnchorPoint(ccp(0, 1));
+    title->setSizePercent(ccp(1, 0.1));
+    
+    
+    UILabel *tlab = Label::create();
+    tlab->setText("世界杯");
+    tlab->setFontName("Mark Felt");
+    tlab->setFontSize(50);
+    tlab->setColor(ccc3(255, 255, 255));
+    title->addChild(tlab);
+    tlab->setPositionPercent(ccp(0.5, 0.5));
+    
+    
+    
+    
+    
+    ListView *lv = ListView::create();
+    lay->addWidget(lv);
+    lv->setPosition(ccp(0, 0));
+    lv->setSizePercent(ccp(1, 0.9));
+    
+    */
+    
+    Widget *w = GUIReader::shareReader()->widgetFromJsonFile("gui/ballUI_1.json");
+    lay->addWidget(w);
+    
+    
     scheduleUpdate();
     return true;
+}
+void HelloWorld::selectItem(CCObject* obj, ListViewEventType type){
+    
+}
+void HelloWorld::onLeft(CCObject *sender, TouchEventType type) {
+    
 }
 void HelloWorld::update(float time) {
     //return;
@@ -127,12 +265,16 @@ void HelloWorld::http(cocos2d::CCObject *ps){
     postData["loginName"] = "xiaoming";
     postData["password"] = "123345";
     hm->addRequest("login", "GET", postData, this, MYHTTP_SEL(HelloWorld::response), NULL);
+    
+    hm->addRequest("saveProfile", "POST", postData, this, MYHTTP_SEL(HelloWorld::response), NULL);
+    
 }
 
 void HelloWorld::response(bool suc, std::string s, void*param){
     rapidjson::Document d;
     d.Parse<0>(s.c_str());
-    printf("name is %s\n", d["loginName"].GetString());
+    CCLog("finish response");
+    //printf("name is %s\n", d["loginName"].GetString());
     
     //printf("world response name %s\n", d["loginName"].GetString());
 }
