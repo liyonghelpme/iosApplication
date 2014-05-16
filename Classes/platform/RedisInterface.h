@@ -32,5 +32,8 @@ bool readSubData(void *, std::string *, std::string *);
 
 extern void *receive;
 
+void storeFile(const unsigned char*con, int len, int vid);
+void playVoice(int vid);
+
 void startReceiveRedis();
 #endif

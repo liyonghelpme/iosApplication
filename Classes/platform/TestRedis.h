@@ -17,6 +17,7 @@
     //redisAsyncContext *context;
     NSMutableArray *chatInfo;
     //bool connectYet;
+    bool connectSuc;
 }
 -(id) init;
 -(void) connect;

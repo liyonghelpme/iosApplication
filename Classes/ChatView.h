@@ -42,6 +42,9 @@ private:
     Widget *w;
     void onText(CCObject *, TextFiledEventType);
     void onSend(CCObject*, TouchEventType);
+    void onSpeak(CCObject*, TouchEventType);
+    void onSay(CCObject*   , TouchEventType);
+    void onOtherVoice(CCObject *, TouchEventType);
     
     UIPanel *oneWord;
     //UIButton *content;
@@ -61,8 +64,22 @@ private:
     
     CCLabelTTF *testLabel;
     UIButton *speak;
-    ImageView *voice2;
+    //ImageView *voice2;
     
+    Button *sayWord;
+    
+    bool inVoice;
+    
+    Layout *myvoice;
+    ImageView *myvImg;
+    
+    int vid;
+    
+    Layout *otherVoice;
+    UIImageView *ohead;
+    Button *ovoice;
+    
+    bool showKeyboard;
     
 };
 #endif /* defined(__TestCpp__ChatView__) */

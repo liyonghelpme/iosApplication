@@ -8,6 +8,11 @@
 
 #include "ChatView.h"
 #include "RedisInterface.h"
+#include "stringbuffer.h"
+#include "writer.h"
+#include "base64.h"
+#include "string.h"
+
 
 CCScene *ChatView::scene(){
     CCScene *scene = CCScene::create();
@@ -30,6 +35,10 @@ bool ChatView::init(){
     {
         return false;
     }
+    showKeyboard = false;
+    inVoice = false;
+    vid = 0;
+    
     CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
     
     setSizeYet = false;
@@ -89,7 +98,27 @@ bool ChatView::init(){
     lab2 = static_cast<UILabel*>(UIHelper::seekWidgetByName(twoWord, "userDialog2"));
     lab2->ignoreContentAdaptWithSize(false);
     head2 = static_cast<ImageView*>(UIHelper::seekWidgetByName(twoWord, "head2"));
+    //voice2 = static_cast<ImageView*>(UIHelper::seekWidgetByName(twoWord, "voice2"));
     
+    speak = static_cast<Button*>(UIHelper::seekWidgetByName(bottom, "speak"));
+    speak->setEnabled(false);
+    speak->addTouchEventListener(this, toucheventselector(ChatView::onSpeak));
+    
+    
+    
+    
+    sayWord = static_cast<Button*>(UIHelper::seekWidgetByName(bottom, "Button_9"));
+    sayWord->addTouchEventListener(this, toucheventselector(ChatView::onSay));
+    myvoice = static_cast<UIPanel*>(UIHelper::seekWidgetByName(w, "myvoice"));
+    myvImg = static_cast<ImageView*>(UIHelper::seekWidgetByName(myvoice, "voice2"));
+    myvoice->setEnabled(false);
+    
+    
+    otherVoice = static_cast<Layout*>(UIHelper::seekWidgetByName(w, "otherVoice"));
+    ohead = static_cast<ImageView*>(UIHelper::seekWidgetByName(otherVoice, "ohead"));
+    ovoice = static_cast<Button*>(UIHelper::seekWidgetByName(otherVoice, "ovoice"));
+    otherVoice->setEnabled(false);
+    ovoice->addTouchEventListener(this, toucheventselector(ChatView::onOtherVoice));
     
     //lab->setSize(CCSizeMake(lwid, 768));
     
@@ -175,6 +204,129 @@ bool ChatView::init(){
     scheduleUpdate();
     return true;
 }
+
+void ChatView::onOtherVoice(cocos2d::CCObject *obj,  TouchEventType tt){
+    CCLog("on Other Voice");
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_MOVED:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_ENDED:
+        {
+            
+            CCNode *n = static_cast<CCNode*>(obj);
+            int vd = n->getTag();
+            playVoice(vd);
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_CANCELED:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+void ChatView::onSay(cocos2d::CCObject *obj, TouchEventType tt){
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_MOVED:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_ENDED:
+        {
+            if (!inVoice) {
+                inVoice = true;
+                sayWord->setTitleText("Word");
+                tf->setEnabled(false);
+                speak->setEnabled(true);
+            }else{
+                inVoice = false;
+                sayWord->setTitleText("Voice");
+                tf->setEnabled(true);
+                speak->setEnabled(false);
+            }
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_CANCELED:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+void ChatView::onSpeak(cocos2d::CCObject *obj, TouchEventType tt){
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            startRecord();
+            speak->setTitleText("松开结束");
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_MOVED:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_ENDED:
+        {
+            
+            
+            
+            CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
+            
+            CCSize ws = myvImg->getSize();
+            CCSize hsz = head2->getSize();
+            float height = std::max(ws.height, hsz.height);
+            height += 20;
+            //voice2->setEnabled(true);
+            //lab2->setEnabled(false);
+            
+            
+            UIPanel *pan = static_cast<UIPanel*>(myvoice->clone());
+            pan->setEnabled(true);
+            pan->setSize(CCSizeMake(fs.width, height));
+            pan->setSizeType(SIZE_ABSOLUTE);
+            pan->setVisible(true);
+            lv->pushBackCustomItem(pan);
+            
+            
+            stopRecord();
+            const char *fn = getFileName();
+            CCLog("file name %s", fn);
+            //connect redis server
+            //connect();
+            //send data to server
+            startSend(fn);
+            speak->setTitleText("按住说话");
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_CANCELED:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
 void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
     switch (tt) {
         case cocos2d::ui::TOUCH_EVENT_BEGAN:
@@ -257,6 +409,9 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
             float height = std::max(ws.height, hsz.height);
             height += 20;
             
+            //voice2->setEnabled(false);
+            //lab2->setEnabled(true);
+            
             UIPanel *pan = static_cast<UIPanel*>(twoWord->clone());
             pan->setEnabled(true);
             pan->setSize(CCSizeMake(fs.width, height));
@@ -274,7 +429,18 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
             //保持指针传递或者传递string更安全
             //connect();
             //startSend(text.c_str());
-            sendText(text);
+            
+            rapidjson::Document d;
+            d.SetObject();
+            
+            rapidjson::Document::AllocatorType &allocator = d.GetAllocator();
+            d.AddMember("type", "text", allocator);
+            d.AddMember("content", text.c_str(), allocator);
+            rapidjson::StringBuffer strbuf;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
+            d.Accept(writer);
+            
+            sendText(strbuf.GetString());
             
         }
             break;
@@ -296,40 +462,82 @@ void ChatView::update(float diff){
         std::string content;
         bool res = readSubData(receive, &channel, &content);
         if(res){
-            CCLog("read data %s %s", channel.c_str(), content.c_str());
+            CCLog("read data %s %d", channel.c_str(), content.size());
+            
+            rapidjson::Document d;
+            d.Parse<0>(content.c_str());
+            std::string tx = "text";
+            std::string conText;
+            bool isText = false;
+            
             CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
             float lwid = fs.width-114-10-30;
-            
-            testLabel->setString(content.c_str());
-            //first test width
-            testLabel->setDimensions(CCSize(0, 0));
-            CCSize osz = testLabel->getContentSize();
-            //CCSize tsz;
-            if(osz.width > lwid){
-                testLabel->setDimensions(CCSize(lwid, 0));
+            //后台只publish 一个索引信息 从服务器拉去 实际的语音讯息
+            if (tx.compare(d["type"].GetString()) == 0 ){
+                conText = d["content"].GetString();
+                isText = true;
+                
+                testLabel->setString(conText.c_str());
+                //first test width
+                testLabel->setDimensions(CCSize(0, 0));
+                CCSize osz = testLabel->getContentSize();
+                //CCSize tsz;
+                if(osz.width > lwid){
+                    testLabel->setDimensions(CCSize(lwid, 0));
+                }
+                
+                CCSize tsz = testLabel->getContentSize();
+                tsz.width++;
+                tsz.height++;
+                
+                lab->setText("");
+                lab->setSize(tsz);
+                lab->setText(conText);
+                
+                CCSize ws = lab->getSize();
+                CCSize hsz = head->getSize();
+                float height = std::max(ws.height, hsz.height);
+                height += 20;
+                
+                UIPanel *pan = static_cast<UIPanel*>(oneWord->clone());
+                pan->setEnabled(true);
+                pan->setSize(CCSizeMake(fs.width, height));
+                pan->setSizeType(SIZE_ABSOLUTE);
+                pan->setVisible(true);
+                
+                CCLog("push CutonItem where");
+                lv->pushBackCustomItem(pan);
+            } else {
+                //decode base64
+                unsigned char *voice = (unsigned char*)d["content"].GetString();
+                unsigned char *out;
+                int outLen = cocos2d::base64Decode(voice, strlen((const char*)voice), &out);
+                storeFile(out, outLen, vid);
+                free(out);
+                
+                CCSize ws = ovoice->getSize();
+                CCSize hsz = ohead->getSize();
+                float height = std::max(ws.height, hsz.height);
+                height += 20;
+                
+                //ovoice->setTag(vid);
+                //vid++;
+                
+                UIPanel *pan = static_cast<UIPanel*>(otherVoice->clone());
+                pan->setEnabled(true);
+                pan->setSize(CCSizeMake(fs.width, height));
+                pan->setSizeType(SIZE_ABSOLUTE);
+                pan->setVisible(true);
+                Button *newVoice = static_cast<Button*>(UIHelper::seekWidgetByName(pan, "ovoice"));
+                newVoice->addTouchEventListener(this, toucheventselector(ChatView::onOtherVoice));
+                newVoice->setTag(vid);
+                vid++;
+                
+                lv->pushBackCustomItem(pan);
+                
             }
             
-            CCSize tsz = testLabel->getContentSize();
-            tsz.width++;
-            tsz.height++;
             
-            lab->setText("");
-            lab->setSize(tsz);
-            lab->setText(content);
-            
-            CCSize ws = lab->getSize();
-            CCSize hsz = head->getSize();
-            float height = std::max(ws.height, hsz.height);
-            height += 20;
-            
-            UIPanel *pan = static_cast<UIPanel*>(oneWord->clone());
-            pan->setEnabled(true);
-            pan->setSize(CCSizeMake(fs.width, height));
-            pan->setSizeType(SIZE_ABSOLUTE);
-            pan->setVisible(true);
-            
-            CCLog("push CutonItem where");
-            lv->pushBackCustomItem(pan);
             
             
         }
@@ -340,17 +548,26 @@ void ChatView::onText(cocos2d::CCObject *obj, TextFiledEventType tt) {
     switch (tt) {
         case cocos2d::ui::TEXTFIELD_EVENT_ATTACH_WITH_IME:
         {
+            showKeyboard = true;
             CCLog("setSizeYet %d",setSizeYet);
             //CCSize screenSize = CCDirector::sharedDirector()->getWinSize();
             //bottom->runAction(CCMoveTo::create(0.225, ccp(0, screenSize.height/2)));
             if (setSizeYet) {
                 bottom->runAction(CCMoveTo::create(0.225, ccp(0, ksize.height)));
             }
+            //CCEGLView *pegl = CCDirector::sharedDirector()->getOpenGLView();
+            //pegl->setIMEKeyboardState(true);
+            
         }
             break;
         case cocos2d::ui::TEXTFIELD_EVENT_DETACH_WITH_IME:
         {
+            //关闭键盘
+            CCLog("event detach with ime");
             bottom->runAction(CCMoveTo::create(0.225, ccp(0, 0)));
+            //CCEGLView *pegl = CCDirector::sharedDirector()->getOpenGLView();
+            //pegl->setIMEKeyboardState(false);
+            
         }
             break;
         case cocos2d::ui::TEXTFIELD_EVENT_INSERT_TEXT:

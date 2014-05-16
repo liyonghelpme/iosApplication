@@ -9,7 +9,31 @@
 #import "TestVoice.h"
 
 @implementation TestVoice
++(id)sharedRecord{
+    static TestVoice *sh = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        sh = [[self alloc] init];
+        
+    });
+    return sh;
+}
+
+void storeFile(const unsigned char*con, int len, int vid){
+    NSArray *savePath = [NSArray arrayWithObjects:[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject], [NSString stringWithFormat:@"tempAudio%d.m4a", vid], nil] ;
+    NSURL *outputFileURL = [NSURL fileURLWithPathComponents:savePath];
+    const char*fn = [outputFileURL fileSystemRepresentation];
+    NSLog([NSString stringWithFormat:@"filename %s", fn ]);
+    FILE *f = fopen(fn, "wb");
+    fwrite(con, 1, len, f);
+    fclose(f);
+    NSLog([NSString stringWithFormat:@"store File %s", outputFileURL.fileSystemRepresentation]);
+    
+}
+
+
 -(void) test{
+    
     NSArray *pathComponents = [NSArray arrayWithObjects:
                                [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject],
                                @"MyAudioMemo.m4a",
@@ -22,7 +46,12 @@
     [recordSetting setValue:[NSNumber numberWithInt:kAudioFormatMPEG4AAC] forKey:AVFormatIDKey];
     [recordSetting setValue:[NSNumber numberWithFloat:44100.0] forKey:AVSampleRateKey];
     [recordSetting setValue:[NSNumber numberWithInt: 2] forKey:AVNumberOfChannelsKey];
- 
+    
+    if (recorder != nil) {
+        [recorder release];
+        recorder = nil;
+    }
+    
     recorder = [[AVAudioRecorder alloc] initWithURL:outputFileURL settings:recordSetting error:NULL];
     recorder.delegate = self;
     recorder.meteringEnabled = YES;
@@ -41,15 +70,17 @@
 -(void)pause{
     [recorder pause];
 }
+
 -(void)stop {
     [recorder stop];
     AVAudioSession *av = [AVAudioSession sharedInstance];
     [av setActive:NO error:nil];
-    
+    //[recorder release];
 }
+
 TestVoice *tv;
 void *startRecord(){
-    tv = [[TestVoice alloc] init];
+    tv = [TestVoice sharedRecord];
     [tv test];
     return tv;
 }
@@ -61,6 +92,28 @@ void *stopRecord(){
 void startPlay(){
     [tv play];
 }
+
+void playVoice(int vid){
+    NSLog([NSString stringWithFormat:@"playVoice %d", vid]);
+    
+    TestVoice *tvv = [TestVoice sharedRecord];
+    [tvv playTempVoice: vid];
+}
+-(void)playTempVoice:(int)vid{
+    if (player != nil) {
+        [player release];
+        player = nil;
+    }
+    NSArray *savePath = [NSArray arrayWithObjects:[NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject], [NSString stringWithFormat:@"tempAudio%d.m4a", vid], nil] ;
+    NSURL *outputFileURL = [NSURL fileURLWithPathComponents:savePath];
+    NSLog([NSString stringWithFormat:@"out url %s", outputFileURL.fileSystemRepresentation]);
+    
+    player = [[AVAudioPlayer alloc] initWithContentsOfURL:outputFileURL error:nil];
+    [player setDelegate:self];
+    BOOL res = [player play];
+    NSLog([NSString stringWithFormat:@"play ok %d", res]);
+}
+
 
 -(void)audioRecorderDidFinishRecording:(AVAudioRecorder *)recorder successfully:(BOOL)flag{
     NSLog(@"finish record");
@@ -74,13 +127,14 @@ void startPlay(){
     [player play];
 }
 -(void)audioPlayerDidFinishPlaying:(AVAudioPlayer *)player successfully:(BOOL)flag{
+    /*
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Done"
                                                         message: @"Finish playing the recording!"
                                                        delegate: nil
                                               cancelButtonTitle:@"OK"
                                               otherButtonTitles:nil];
         [alert show];
-    
+    */
 }
 const char* getFileName(){
     NSURL *url = tv->recorder.url;

@@ -8,6 +8,11 @@
 
 #import "TestRedis.h"
 #include "stdio.h"
+#include "document.h";
+#include "stringbuffer.h"
+#include "writer.h"
+
+
 void *receive = NULL;
 void startReceiveRedis(){
     receive = createRedis();
@@ -30,11 +35,11 @@ void startReceiveRedis(){
 -(id)init{
     //connectYet = false;
     self = [super init];
-    /*
-    if (self) {
-        self->redis = nil;
+    
+    if (self != nil) {
+        self->connectSuc = false;
     }
-     */
+    
     return self;
 }
 
@@ -81,11 +86,15 @@ void runSubscribe(void *tc){
     //Warning connect must in thread itself
     chatInfo = [[NSMutableArray alloc] init];
     [self connect];
+    //connect false
+    if (redis == nil) {
+        return;
+    }
     [redis command:@"subscribe chat"];
     while (true) {
         id retVal = [redis getReply];
         NSLog(@"replay is");
-        NSLog([NSString stringWithFormat:@"%@", retVal]);
+        //NSLog([NSString stringWithFormat:@"%@", retVal]);
         
         @synchronized(chatInfo){
             [chatInfo addObject:retVal];
@@ -149,6 +158,12 @@ void *connect(){
 -(void) connect{
     redis = [ObjCHiredis redis:@"127.0.0.1" on:[NSNumber numberWithInt:6379]];
     [redis retain];
+    if (redis == nil) {
+        self->connectSuc = false;
+    }else {
+        self->connectSuc = true;
+    }
+    
     /*
     id key = [redis command:@"set testKey 123"];
     [redis command:@"subscribe chat"];
@@ -172,6 +187,10 @@ void *connect(){
     NSLog([NSString stringWithFormat:@"filename %s", fn ]);
     //FILE *f = fopen(fn, "r");
     //fread(<#void *#>, <#size_t#>, <#size_t#>, <#FILE *#>)
+    //connection Fail or connection lost
+    if (redis == nil) {
+        return;
+    }
     
     NSFileManager *fmr = [NSFileManager defaultManager];
     NSData *db = [fmr contentsAtPath:[NSString stringWithFormat:@"%s", fn]];
@@ -179,8 +198,16 @@ void *connect(){
     //const void* data = db.bytes;
     //NSInteger len = db.length;
     NSString *b64 = db.base64Encoding;
+    rapidjson::Document d;
+    d.SetObject();
+    rapidjson::Document::AllocatorType &allocator = d.GetAllocator();
+    d.AddMember("type", "voice", allocator);
+    d.AddMember("content", [b64 UTF8String], allocator);
+    rapidjson::StringBuffer strbuf;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
+    d.Accept(writer);
     
-    NSString *cmd = [NSString stringWithFormat:@"publish chat %@", b64];
+    NSString *cmd = [NSString stringWithFormat:@"publish chat %s", strbuf.GetString()];
     NSLog(@"send cmd");
     //NSLog(cmd);
     NSLog([NSString stringWithFormat:@"%d cmd %d", (int)b64.length, (int)cmd.length]);
@@ -191,7 +218,10 @@ void *connect(){
 }
 
 void startSend(const char *fn){
-    id tr = [TestRedis sharedRedis];
+    TestRedis *tr = [TestRedis sharedRedis];
+    if (tr->redis == nil) {
+        [tr connect];
+    }
     [tr sendVoice:fn];
 }
 
@@ -200,11 +230,18 @@ void sendText(std::string text){
     if (tr->redis == nil) {
         [tr connect];
     }
+    //rapidjson::Document d;
+    
     [tr redisSendText:text.c_str()];
 }
 
 //发送命令也要一个异步的线程来处理才行
 -(void)redisSendText:(const char *)text{
+    if (redis == nil) {
+        connectSuc = false;
+        return;
+    }
+    //NSString *s = [NSString stringWithFormat:@""];
     
     NSString *cmd = [NSString stringWithFormat:@"publish chat %s", text];
     //NSLog(cmd);

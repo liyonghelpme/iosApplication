@@ -12,9 +12,13 @@
 @interface TestVoice : NSObject <AVAudioRecorderDelegate, AVAudioPlayerDelegate> {
     AVAudioRecorder *recorder;
     AVAudioPlayer *player;
+    //NSString *recordPath;
 }
+
++(id)sharedRecord;
 -(void)test;
 -(void)pause;
 -(void)stop;
 -(void)play;
+-(void)playTempVoice:(int)vid;
 @end

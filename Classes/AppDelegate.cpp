@@ -31,6 +31,8 @@ THE SOFTWARE.
 #include "AppMacros.h"
 #include "WorldCup.h"
 #include "ChatView.h"
+#include "LoginView.h"
+
 
 USING_NS_CC;
 using namespace std;
@@ -106,8 +108,9 @@ bool AppDelegate::applicationDidFinishLaunching() {
     
     //CCScene *pScene = WorldCup::scene();
     
-    CCScene *pScene = ChatView::scene();
+    //CCScene *pScene = ChatView::scene();
     
+    CCScene *pScene = LoginView::scene();
     
     // run
     pDirector->runWithScene(pScene);
