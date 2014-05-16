@@ -7,7 +7,8 @@
 //
 
 #include "ChatView.h"
-#include "TestRedis.h"
+#include "RedisInterface.h"
+
 CCScene *ChatView::scene(){
     CCScene *scene = CCScene::create();
     
@@ -65,27 +66,28 @@ bool ChatView::init(){
     UIButton *send = static_cast<UIButton*>(UIHelper::seekWidgetByName(bottom, "send"));
     send->addTouchEventListener(this, toucheventselector(ChatView::onSend));
     
+    
+    
+    //对方说话的panel
     //panel 下面还可以增加panel么?
     oneWord = static_cast<UIPanel*>(UIHelper::seekWidgetByName(w, "oneWord"));
     oneWord->setEnabled(false);
-    
     lab = static_cast<UILabel*>(UIHelper::seekWidgetByName(oneWord, "userDialog"));
-    
+    lab->ignoreContentAdaptWithSize(false);
     head = static_cast<ImageView*>(UIHelper::seekWidgetByName(oneWord, "head"));
     
-    float lwid = fs.width-114-10-20;
     
-    CCLog("label max widht %f", lwid);
+    //float lwid = fs.width-114-10-20;
+    
+    //CCLog("label max widht %f", lwid);
     //lab->setSizeType(SIZE_ABSOLUTE);
     //lab->setTextAreaSize(CCSizeMake(100, fs.height));
-    lab->ignoreContentAdaptWithSize(false);
+    
     
     twoWord = static_cast<UIPanel*>(UIHelper::seekWidgetByName(w, "twoWord"));
     twoWord->setEnabled(false);
-    
     lab2 = static_cast<UILabel*>(UIHelper::seekWidgetByName(twoWord, "userDialog2"));
     lab2->ignoreContentAdaptWithSize(false);
-    
     head2 = static_cast<ImageView*>(UIHelper::seekWidgetByName(twoWord, "head2"));
     
     
@@ -250,8 +252,8 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
             //如何得到实际的文本高度呢？不仅仅是Size得高度
             
             //CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
-            CCSize ws = lab->getSize();
-            CCSize hsz = head->getSize();
+            CCSize ws = lab2->getSize();
+            CCSize hsz = head2->getSize();
             float height = std::max(ws.height, hsz.height);
             height += 20;
             
@@ -259,7 +261,7 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
             pan->setEnabled(true);
             pan->setSize(CCSizeMake(fs.width, height));
             pan->setSizeType(SIZE_ABSOLUTE);
-            
+            pan->setVisible(true);
             /*
             UIPanel *pan = static_cast<UIPanel*>(oneWord->clone());
             pan->setEnabled(true);
@@ -270,7 +272,7 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
             lv->pushBackCustomItem(pan);
             
             //保持指针传递或者传递string更安全
-            connect();
+            //connect();
             //startSend(text.c_str());
             sendText(text);
             
@@ -288,6 +290,7 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
 void ChatView::update(float diff){
     if (receive == NULL) {
         startReceiveRedis();
+        CCLog("receive %x", receive);
     }else {
         std::string channel;
         std::string content;
@@ -309,6 +312,7 @@ void ChatView::update(float diff){
             CCSize tsz = testLabel->getContentSize();
             tsz.width++;
             tsz.height++;
+            
             lab->setText("");
             lab->setSize(tsz);
             lab->setText(content);
@@ -318,11 +322,13 @@ void ChatView::update(float diff){
             float height = std::max(ws.height, hsz.height);
             height += 20;
             
-             UIPanel *pan = static_cast<UIPanel*>(oneWord->clone());
-             pan->setEnabled(true);
-             pan->setSize(CCSizeMake(fs.width, height));
-             pan->setSizeType(SIZE_ABSOLUTE);
+            UIPanel *pan = static_cast<UIPanel*>(oneWord->clone());
+            pan->setEnabled(true);
+            pan->setSize(CCSizeMake(fs.width, height));
+            pan->setSizeType(SIZE_ABSOLUTE);
+            pan->setVisible(true);
             
+            CCLog("push CutonItem where");
             lv->pushBackCustomItem(pan);
             
             

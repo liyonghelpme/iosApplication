@@ -11,6 +11,8 @@
 void *receive = NULL;
 void startReceiveRedis(){
     receive = createRedis();
+    NSLog([NSString stringWithFormat:@"receive is %@", receive ]);
+    
     connectRedis(receive);
     runSubscribe(receive);
 }
@@ -27,11 +29,19 @@ void startReceiveRedis(){
 }
 -(id)init{
     //connectYet = false;
+    self = [super init];
+    /*
+    if (self) {
+        self->redis = nil;
+    }
+     */
+    return self;
 }
 
 void *createRedis() {
     NSLog(@"create Redis");
-    TestRedis *cd = [[TestRedis alloc] init];
+    id cd = [[TestRedis alloc] init];
+    //NSLog([NSString stringWithFormat:@"TestRedis %@", cd]);
     return cd;
 }
 void connectRedis(void *cd) {
@@ -90,6 +100,7 @@ bool readSubData(void *c, std::string* cha, std::string *con){
     TestRedis *tr = (TestRedis*)c;
     const char*ca, *cn;
     BOOL has = [tr readData:&ca c:&cn];
+    //NSLog([NSString stringWithFormat:@"readSubData %d", has]);
     if (has) {
         cha->assign(ca);
         con->assign(cn);
@@ -137,7 +148,7 @@ void *connect(){
 //阻塞连接 会block掉整个程序 需要使用 Aynchronized 来做连接 或者 采用多线程 来做连接
 -(void) connect{
     redis = [ObjCHiredis redis:@"127.0.0.1" on:[NSNumber numberWithInt:6379]];
-    
+    [redis retain];
     /*
     id key = [redis command:@"set testKey 123"];
     [redis command:@"subscribe chat"];
@@ -185,13 +196,21 @@ void startSend(const char *fn){
 }
 
 void sendText(std::string text){
-    id tr = [TestRedis sharedRedis];
+    TestRedis *tr = [TestRedis sharedRedis];
+    if (tr->redis == nil) {
+        [tr connect];
+    }
     [tr redisSendText:text.c_str()];
 }
 
 //发送命令也要一个异步的线程来处理才行
 -(void)redisSendText:(const char *)text{
+    
     NSString *cmd = [NSString stringWithFormat:@"publish chat %s", text];
+    //NSLog(cmd);
+    //[redis retainCount];
+    
+    NSLog([NSString stringWithFormat:@"%d", [redis retainCount]]);
     id retVal = [redis command:cmd];
     NSLog([NSString stringWithFormat:@"retval %@", retVal]);
 }

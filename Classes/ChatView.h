@@ -60,6 +60,9 @@ private:
     ImageView *head;
     
     CCLabelTTF *testLabel;
+    UIButton *speak;
+    ImageView *voice2;
+    
     
 };
 #endif /* defined(__TestCpp__ChatView__) */
