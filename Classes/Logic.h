@@ -22,12 +22,25 @@ public:
     Logic();
     void initMatchInfo();
     
-    
+    int getUID() {
+        return uid;
+    }
+    void setUID(int i){
+        uid = i;
+    }
     
     bool initMatchYet;
     bool requestYet;
     rapidjson::Document d;
     
+    
+    
+    string loginName;
+    string password;
+    string nickname;
+    
+    //当前选择的比赛信息
+    const rapidjson::Value *matchInfo;
 private:
     int uid;
     

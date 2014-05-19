@@ -23,7 +23,7 @@ HttpModel *HttpModel::getInstance(){
     return s_http;
 }
 HttpModel::HttpModel(){
-    baseUrl = "http://172.17.0.175:5000/";
+    baseUrl = "http://localhost:5000/";
 }
 struct TempData {
     CCObject *object;

@@ -8,6 +8,8 @@
 
 #include "RegisterView.h"
 #include "HttpModel.h"
+#include "FinishReg.h"
+#include "Logic.h"
 
 CCScene *RegisterView::scene(){
     CCScene *scene = CCScene::create();
@@ -98,7 +100,7 @@ void RegisterView::onReg(cocos2d::CCObject *obj, TouchEventType tt){
             pd["loginName"] = pn;
             pd["password"] = p1;
             //pd["password"] =
-            hm->addRequest("register", "GET", pd, this, MYHTTP_SEL(RegisterView::registerOver), NULL);
+            hm->addRequest("register", "POST", pd, this, MYHTTP_SEL(RegisterView::registerOver), NULL);
             
         }
             break;
@@ -119,11 +121,19 @@ void RegisterView::registerOver(bool suc, std::string s, void *param){
     inReg = false;
     if (d["state"].GetInt() == 0) {
         error->setEnabled(true);
-        error->setText("注册失败");
+        error->setText(d["err"].GetString());
         error->runAction(CCSequence::create(CCScaleTo::create(0.1, 1.2, 1.2), CCScaleTo::create(0.1, 1),  NULL));
-        
     }else {
         
+        string pn = phonenum->getStringValue();
+        Logic::getInstance()->loginName = pn;
+        Logic::getInstance()->setUID(d["uid"].GetInt());
+        
+        CCDirector::sharedDirector()->replaceScene(FinishReg::scene());
     }
+}
+
+void RegisterView::update(float diff){
+    
 }
 

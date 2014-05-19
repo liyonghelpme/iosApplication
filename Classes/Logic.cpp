@@ -13,6 +13,7 @@ static Logic *s_Logic = NULL;
 Logic::Logic():
 initMatchYet(false)
 , requestYet(false)
+, uid(0)
 {
     
 }
@@ -35,6 +36,10 @@ void Logic::initMatchOver(bool isSuc, string s, void *param) {
     initMatchYet = true;
     //rapidjson::Document d;
     d.Parse<0>(s.c_str());
+    if (d["state"].GetInt() == 0) {
+        return;
+    }
+    
     
     /*
     const rapidjson::Value&b = d["matches"];

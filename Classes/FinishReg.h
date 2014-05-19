@@ -1,13 +1,13 @@
 //
-//  RegisterView.h
+//  FinishReg.h
 //  TestCpp
 //
-//  Created by dozengame on 14-5-16.
+//  Created by dozengame on 14-5-19.
 //
 //
 
-#ifndef __TestCpp__RegisterView__
-#define __TestCpp__RegisterView__
+#ifndef __TestCpp__FinishReg__
+#define __TestCpp__FinishReg__
 
 #include <iostream>
 
@@ -16,22 +16,25 @@
 using namespace cocos2d;
 using namespace extension;
 using namespace ui;
-class RegisterView : public CCLayer {
+class FinishReg : public CCLayer {
 public:
     virtual bool init();
     virtual void update(float);
     static CCScene *scene();
     
-    CREATE_FUNC(RegisterView);
+    CREATE_FUNC(FinishReg);
 private:
-    void onReg(CCObject *, TouchEventType);
+    void onFin(CCObject *, TouchEventType);
     void registerOver(bool suc, std::string s, void *param);
     
+    
     bool inReg;
-    TextField *phonenum;
-    TextField *password;
-    TextField *password1;
+    
+    TextField *name;
+    Button *finBut;
+    
     Label *error;
+    Layout *netLay;
     
     
     Widget *w;
@@ -40,4 +43,4 @@ private:
     
 };
 
-#endif /* defined(__TestCpp__RegisterView__) */
+#endif /* defined(__TestCpp__FinishReg__) */

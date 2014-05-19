@@ -8,6 +8,7 @@
 
 #include "WorldCup.h"
 #include "Logic.h"
+#include "ChatView.h"
 
 using namespace extension;
 using namespace ui;
@@ -138,6 +139,7 @@ void WorldCup::update(float diff){
                     //lv->pushBackCustomItem(pc->clone());
                     
                 }
+                //添加比赛信息
                 string tit = c["title"].GetString();
                 tit += emp+ c["time"].GetString();
                 title->setText(tit);
@@ -147,11 +149,53 @@ void WorldCup::update(float diff){
                 host->setText(c["name1"].GetString());
                 client->setText(c["name2"].GetString());
                 
-                lv->pushBackCustomItem(cp->clone());
-            
+                Layout *ly = static_cast<Layout*>(cp->clone());
+                Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "Button_12"));
+                ly->setTag(c["id"].GetInt());
+                bnt->setTag(c["id"].GetInt());
+                bnt->addTouchEventListener(this, toucheventselector(WorldCup::onChat));
+                lv->pushBackCustomItem(ly);
                 
             }
             
         }
     }
 }
+
+void WorldCup::onChat(cocos2d::CCObject *obj, TouchEventType tt){
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_MOVED:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_ENDED:
+        {
+            Button *bnt = static_cast<Button*>(obj);
+            int mid = bnt->getTag();
+            rapidjson::Document &d = Logic::getInstance()->d;
+            const rapidjson::Value &b = d["matches"];
+            //const rapidjson::Value &c = b[mid];
+            
+            Logic::getInstance()->matchInfo = &b[mid];
+            
+            CCDirector::sharedDirector()->pushScene(ChatView::scene());
+            
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_CANCELED:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+

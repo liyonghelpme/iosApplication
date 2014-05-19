@@ -8,6 +8,10 @@
 
 #include "LoginView.h"
 #include "HttpModel.h"
+#include "RegisterView.h"
+#include "Logic.h"
+#include "WorldCup.h"
+
 
 CCScene *LoginView::scene(){
     CCScene *scene = CCScene::create();
@@ -60,15 +64,18 @@ bool LoginView::init(){
     scheduleUpdate();
     
     CCUserDefault *u = CCUserDefault::sharedUserDefault();
-    std::string uname = u->getStringForKey("username");
+    std::string uname = u->getStringForKey("loginName");
     
     //登录 或者注册
     if (uname.compare("") == 0) {
         
     //用户登录过 直接进入应用
     }else {
-        
+        Logic::getInstance()->loginName = uname;
+        Logic::getInstance()->setUID(u->getIntegerForKey("uid"));
+        Logic::getInstance()->nickname = u->getStringForKey("nickname");
     }
+    
     
     return true;
     
@@ -171,12 +178,30 @@ void LoginView::onLogin(CCObject *obj, TouchEventType tt){
             if (inLogin) {
                 return;
             }
+            string ln = phoneNum->getStringValue();
+            string pw = password->getStringValue();
+            if (ln.length() == 0) {
+                error->setEnabled(true);
+                error->runAction(CCSequence::create(CCScaleTo::create(0.1, 1.2, 1.2), CCScaleTo::create(0.1, 1, 1), NULL));
+                error->setText("登录名不能为空");
+                return;
+            }
+            if (pw.length() == 0) {
+                error->setEnabled(true);
+                error->runAction(CCSequence::create(CCScaleTo::create(0.1, 1.2, 1.2), CCScaleTo::create(0.1, 1, 1), NULL));
+                error->setText("密码不能为空");
+                return;
+            }
+            
+            
             inLogin = true;
             HttpModel *hm = HttpModel::getInstance();
             std::map<string, string>pd;
+            pd["loginName"] = ln;
+            pd["password"] = pw;
             hm->addRequest("login", "GET", pd, this, MYHTTP_SEL(LoginView::loginOver), NULL);
-            
         }
+            
             break;
         case cocos2d::ui::TOUCH_EVENT_CANCELED:
         {
@@ -187,15 +212,21 @@ void LoginView::onLogin(CCObject *obj, TouchEventType tt){
             break;
     }
 }
+
 void LoginView::loginOver(bool suc, std::string s, void *param) {
+    if (!suc) {
+        return;
+    }
+    
     rapidjson::Document d;
     d.Parse<0>(s.c_str());
     inLogin = false;
     if(d["state"].GetInt() == 0) {
         error->setEnabled(true);
         error->runAction(CCSequence::create(CCScaleTo::create(0.1, 1.2, 1.2), CCScaleTo::create(0.1, 1, 1), NULL));
+        error->setText(d["err"].GetString());
     }else {
-        
+        Logic::getInstance()->setUID(d["uid"].GetInt());
     }
     
 }
@@ -213,8 +244,7 @@ void LoginView::onReg(CCObject *obj, TouchEventType tt) {
             break;
         case cocos2d::ui::TOUCH_EVENT_ENDED:
         {
-            
-
+            CCDirector::sharedDirector()->replaceScene(RegisterView::scene());
         }
             break;
         case cocos2d::ui::TOUCH_EVENT_CANCELED:
