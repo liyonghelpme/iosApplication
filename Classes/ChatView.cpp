@@ -12,6 +12,8 @@
 #include "writer.h"
 #include "base64.h"
 #include "string.h"
+#include "Logic.h"
+#include "ChatInfo.h"
 
 
 CCScene *ChatView::scene(){
@@ -35,9 +37,12 @@ bool ChatView::init(){
     {
         return false;
     }
+    //chatImgId = 1;
     showKeyboard = false;
     inVoice = false;
-    vid = 0;
+    //vid = 0;
+    selectImgYet = false;
+    
     
     CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
     
@@ -53,13 +58,43 @@ bool ChatView::init(){
     lay->addWidget(w);
     w->setSize(size);
     
+    //w->addTouchEventListener(this, toucheventselector(ChatView::onBack));
+    //CCLog("back is touch %d %d", w->isTouchEnabled(), w->isEnabled());
+    
+    
+    const rapidjson::Value* minf = Logic::getInstance()->matchInfo;
+    
+    Label *title = static_cast<Label*>(UIHelper::seekWidgetByName(w, "title"));
+    if (!DEBUG) {
+        string tname = (*minf)["name1"].GetString();
+        tname += "VS";
+        tname += (*minf)["name2"].GetString();
+        title->setText(tname);
+        
+        Label *slab = static_cast<Label*>(UIHelper::seekWidgetByName(w, "score"));
+        string sc = "比分 ";
+        sc += (*minf)["score1"].GetInt();
+        sc += ":";
+        sc += (*minf)["score2"].GetInt();
+        slab->setText(sc);
+        
+    }
+    
+    
+    
+    
+    
     tf = static_cast<UITextField*>(UIHelper::seekWidgetByName(w, "word"));
+    tf->setMulLine(true);
+    
     CCSize bs = tf->getSize();
     tf->ignoreContentAdaptWithSize(false);
     float nw = 400*fs.width/640;
     
+    
+    
     //输入框高度随着输入内容一起增长即可
-    tf->setSize(CCSizeMake(nw, 400));
+    tf->setSize(CCSizeMake(nw, 58));
     
     tf->setTextHorizontalAlignment(kCCTextAlignmentLeft);
     tf->setTextVerticalAlignment(kCCVerticalTextAlignmentBottom);
@@ -69,10 +104,12 @@ bool ChatView::init(){
     tf->addEventListenerTextField(this, textfieldeventselector(ChatView::onText));
     
     bottom = static_cast<UIPanel*>(UIHelper::seekWidgetByName(w, "bottom"));
-    UIButton *add = static_cast<UIButton*>(UIHelper::seekWidgetByName(bottom, "add"));
-    add->setEnabled(false);
+    add = static_cast<UIButton*>(UIHelper::seekWidgetByName(bottom, "add"));
+    //add->setEnabled(false);
+    add->addTouchEventListener(this, toucheventselector(ChatView::onAdd));
     
-    UIButton *send = static_cast<UIButton*>(UIHelper::seekWidgetByName(bottom, "send"));
+    
+    send = static_cast<UIButton*>(UIHelper::seekWidgetByName(bottom, "send"));
     send->addTouchEventListener(this, toucheventselector(ChatView::onSend));
     
     
@@ -110,7 +147,7 @@ bool ChatView::init(){
     sayWord = static_cast<Button*>(UIHelper::seekWidgetByName(bottom, "Button_9"));
     sayWord->addTouchEventListener(this, toucheventselector(ChatView::onSay));
     myvoice = static_cast<UIPanel*>(UIHelper::seekWidgetByName(w, "myvoice"));
-    myvImg = static_cast<ImageView*>(UIHelper::seekWidgetByName(myvoice, "voice2"));
+    myvImg = static_cast<Button*>(UIHelper::seekWidgetByName(myvoice, "voice2"));
     myvoice->setEnabled(false);
     
     
@@ -119,6 +156,10 @@ bool ChatView::init(){
     ovoice = static_cast<Button*>(UIHelper::seekWidgetByName(otherVoice, "ovoice"));
     otherVoice->setEnabled(false);
     ovoice->addTouchEventListener(this, toucheventselector(ChatView::onOtherVoice));
+    
+    Button *cinfo = static_cast<Button*>(UIHelper::seekWidgetByName(w, "Button_3"));
+    cinfo->addTouchEventListener(this, toucheventselector(ChatView::onChatInfo));
+    
     
     //lab->setSize(CCSizeMake(lwid, 768));
     
@@ -199,10 +240,100 @@ bool ChatView::init(){
     CCLog("initial listView");
     
     lv = static_cast<ListView*>(UIHelper::seekWidgetByName(w, "listView"));
+    lv->addTouchEventListener(this, toucheventselector(ChatView::onBackgroundTouch));
+    
+    lv->addEventListenerListView(this, listvieweventselector(ChatView::onBackground));
     
     
     scheduleUpdate();
     return true;
+}
+
+//点击listView 则 关闭键盘 detachIME
+void ChatView::onBackground(cocos2d::CCObject *obj, ListViewEventType tt){
+    CCLog("background touch event %d", tt);
+    switch (tt) {
+        case cocos2d::ui::LISTVIEW_ONSELECTEDITEM_START:
+        {
+            CCLog("touch background");
+            tf->closeIME();
+        }
+            break;
+        case cocos2d::ui::LISTVIEW_ONSELECTEDITEM_END:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+void ChatView::onBackgroundTouch(cocos2d::CCObject *obj, TouchEventType tt){
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            tf->closeIME();
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+void ChatView::onAdd(cocos2d::CCObject *obj, TouchEventType tt){
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_MOVED:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_ENDED:
+        {
+            //打开了选择图片页面
+            selectImgYet = true;
+            openImageSelect();
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_CANCELED:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+void ChatView::onChatInfo(CCObject *obj, TouchEventType tt){
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_MOVED:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_ENDED:
+        {
+            CCDirector::sharedDirector()->pushScene(ChatInfo::scene());
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_CANCELED:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
 }
 
 void ChatView::onOtherVoice(cocos2d::CCObject *obj,  TouchEventType tt){
@@ -286,9 +417,6 @@ void ChatView::onSpeak(cocos2d::CCObject *obj, TouchEventType tt){
             break;
         case cocos2d::ui::TOUCH_EVENT_ENDED:
         {
-            
-            
-            
             CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
             
             CCSize ws = myvImg->getSize();
@@ -300,6 +428,11 @@ void ChatView::onSpeak(cocos2d::CCObject *obj, TouchEventType tt){
             
             
             UIPanel *pan = static_cast<UIPanel*>(myvoice->clone());
+            Button *voice = static_cast<Button*>(UIHelper::seekWidgetByName(pan, "voice2"));
+            //声音文件编号 当前录制的音频文件编号
+            voice->setTag(getMyRecordVid());
+            voice->addTouchEventListener(this, toucheventselector(ChatView::onVoice));
+            
             pan->setEnabled(true);
             pan->setSize(CCSizeMake(fs.width, height));
             pan->setSizeType(SIZE_ABSOLUTE);
@@ -313,9 +446,39 @@ void ChatView::onSpeak(cocos2d::CCObject *obj, TouchEventType tt){
             //connect redis server
             //connect();
             //send data to server
+            //发送语音文件 本地显示相关的语音文件关联
             startSend(fn);
             speak->setTitleText("按住说话");
             
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_CANCELED:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+//播放自己的声音
+void ChatView::onVoice(cocos2d::CCObject *obj, TouchEventType tt){
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_MOVED:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_ENDED:
+        {
+            CCNode *n = static_cast<CCNode*>(obj);
+            int vd = n->getTag();
+            playVoice(vd);
         }
             break;
         case cocos2d::ui::TOUCH_EVENT_CANCELED:
@@ -436,11 +599,15 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
             rapidjson::Document::AllocatorType &allocator = d.GetAllocator();
             d.AddMember("type", "text", allocator);
             d.AddMember("content", text.c_str(), allocator);
+            d.AddMember("sender", Logic::getInstance()->nickname.c_str(), allocator);
+            
             rapidjson::StringBuffer strbuf;
             rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
             d.Accept(writer);
             
             sendText(strbuf.GetString());
+            
+            adjustBut();
             
         }
             break;
@@ -454,6 +621,61 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
     }
 }
 void ChatView::update(float diff){
+    
+    //打开过图片选择 并且 确认 获取图片 数据了
+    if (selectImgYet && checkGetYet()) {
+        selectImgYet = false;
+        int len;
+        void *data = getImage(&len);
+        CCLog("select Img %x %d", data, len);
+        //获取了本地图像数据
+        if (data != NULL) {
+            //发送出去显示为一张对话的图片
+            
+            char name[128];
+            sprintf(name, "tmp_%d", Logic::getInstance()->getImgId());
+            const char *key = name;
+            
+            CCTexture2D *pTexture = CCTextureCache::sharedTextureCache()->textureForKey(key);
+            CCImage *pImage = new CCImage();
+            pImage->initWithImageData(data, len, CCImage::kFmtPng);
+            
+            pTexture = CCTextureCache::sharedTextureCache()->addUIImage(pImage, key);
+            CC_SAFE_RELEASE(pImage);
+            
+            
+            CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
+            //图片宽度需要进行缩放到100*100 的尺寸
+            CCSize ws = CCSizeMake(100, 100);
+            CCSize hsz = head->getSize();
+            float height = std::max(ws.height, hsz.height);
+            height += 20;
+            
+            
+            UIPanel *pan = static_cast<UIPanel*>(myvoice->clone());
+            Button *vimg = static_cast<Button*>(UIHelper::seekWidgetByName(pan, "voice2"));
+            CCLog("vimg name %s", vimg->getName());
+            vimg->loadTextureNormal(key, UI_TEX_TYPE_LOCAL);
+            vimg->setSize(ws);
+            vimg->setSizeType(SIZE_ABSOLUTE);
+            //使用customSize 而不是图片自动size
+            vimg->ignoreContentAdaptWithSize(false);
+            
+            
+            pan->setEnabled(true);
+            pan->setSize(CCSizeMake(fs.width, height));
+            pan->setSizeType(SIZE_ABSOLUTE);
+            pan->setVisible(true);
+            
+            lv->pushBackCustomItem(pan);
+            
+            //发送图像文件
+            sendImage();
+            //head->loadTextureNormal(key, UI_TEX_TYPE_LOCAL);
+            
+        }
+    }
+    
     if (receive == NULL) {
         startReceiveRedis();
         CCLog("receive %x", receive);
@@ -467,13 +689,26 @@ void ChatView::update(float diff){
             rapidjson::Document d;
             d.Parse<0>(content.c_str());
             std::string tx = "text";
+            std::string ctype = d["type"].GetString();
+            
             std::string conText;
             bool isText = false;
             
             CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
             float lwid = fs.width-114-10-30;
+            string sender = d["sender"].GetString();
+            //自己发送的不要显示
+            //显示发送者的头像数据 根据Id 获得相关头像
+            //header Cache
+            //调试关闭
+            /*
+            if (sender.compare(Logic::getInstance()->nickname) == 0) {
+                return;
+            }
+             */
+            
             //后台只publish 一个索引信息 从服务器拉去 实际的语音讯息
-            if (tx.compare(d["type"].GetString()) == 0 ){
+            if (ctype.compare("text") == 0 ){
                 conText = d["content"].GetString();
                 isText = true;
                 
@@ -507,11 +742,13 @@ void ChatView::update(float diff){
                 
                 CCLog("push CutonItem where");
                 lv->pushBackCustomItem(pan);
-            } else {
+            } else if(ctype.compare("voice") == 0){
                 //decode base64
                 unsigned char *voice = (unsigned char*)d["content"].GetString();
                 unsigned char *out;
                 int outLen = cocos2d::base64Decode(voice, strlen((const char*)voice), &out);
+                int vid = Logic::getInstance()->getVid();
+                
                 storeFile(out, outLen, vid);
                 free(out);
                 
@@ -531,10 +768,81 @@ void ChatView::update(float diff){
                 Button *newVoice = static_cast<Button*>(UIHelper::seekWidgetByName(pan, "ovoice"));
                 newVoice->addTouchEventListener(this, toucheventselector(ChatView::onOtherVoice));
                 newVoice->setTag(vid);
-                vid++;
+                //vid++;
                 
                 lv->pushBackCustomItem(pan);
                 
+            }else if(ctype.compare("image") == 0) {
+                
+                unsigned char *image = (unsigned char*)d["content"].GetString();
+                unsigned char *out;
+                int outLen = cocos2d::base64Decode(image, strlen((const char*)image), &out);
+                
+                /*
+                bool compareData = true;
+                int llen;
+                unsigned char *ldata = (unsigned char*)getImage(&llen);
+                //decode 的数据是错误的
+                if (ldata != NULL) {
+                    CCLog("data lenght %d %d", llen, outLen);
+                    //长度相同但是 解压缩后的数据不同为什么呢？
+                    for (int i = 0 ; i < 100 && i < llen; i++) {
+                        CCLog("%x %c %x %c", (unsigned char)ldata[i], ldata[i], (unsigned char)out[i], out[i]);
+                    }
+                    for (int i = 0; i < llen; i++) {
+                        if (ldata[i] != out[i]) {
+                            compareData = false;
+                            break;
+                        }
+                    }
+                    if (!compareData) {
+                        CCLog("data different!!");
+                    }
+                    
+                }
+                */
+                
+                char name[128];
+                int imgId = Logic::getInstance()->getImgId();
+                sprintf(name, "tmp_%d", imgId);
+                const char*key = name;
+                
+                CCTexture2D *pTexture = CCTextureCache::sharedTextureCache()->textureForKey(key);
+                CCImage *pImage = new CCImage();
+                pImage->initWithImageData(out, outLen, CCImage::kFmtPng);
+                
+                pTexture = CCTextureCache::sharedTextureCache()->addUIImage(pImage, key);
+                CC_SAFE_RELEASE(pImage);
+                
+                //int vid = Logic::getInstance()->getVid();
+                //storeFile(out, outLen, vid);
+                free(out);
+                
+                CCSize ws = CCSizeMake(100, 100);
+                CCSize hsz = ohead->getSize();
+                float height = std::max(ws.height, hsz.height);
+                height += 20;
+                
+                //ovoice->setTag(vid);
+                //vid++;
+                
+                UIPanel *pan = static_cast<UIPanel*>(otherVoice->clone());
+                pan->setEnabled(true);
+                pan->setSize(CCSizeMake(fs.width, height));
+                pan->setSizeType(SIZE_ABSOLUTE);
+                pan->setVisible(true);
+                Button *newVoice = static_cast<Button*>(UIHelper::seekWidgetByName(pan, "ovoice"));
+                newVoice->setTag(imgId);
+                newVoice->ignoreContentAdaptWithSize(false);
+                newVoice->setSizeType(SIZE_ABSOLUTE);
+                newVoice->setSize(ws);
+                //加载的发送的图像数据不对为什么呢？
+                newVoice->loadTextureNormal(key, UI_TEX_TYPE_LOCAL);
+                //newVoice->addTouchEventListener(this, toucheventselector(ChatView::onOtherVoice));
+                //newVoice->setTag(vid);
+                //vid++;
+                
+                lv->pushBackCustomItem(pan);
             }
             
             
@@ -548,6 +856,14 @@ void ChatView::onText(cocos2d::CCObject *obj, TextFiledEventType tt) {
     switch (tt) {
         case cocos2d::ui::TEXTFIELD_EVENT_ATTACH_WITH_IME:
         {
+            //出现键盘之后用户就不能点击了
+            
+            tf->setTouchEnabled(false);
+            CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
+            float nw = 400*fs.width/640;
+            tf->setSize(CCSizeMake(nw, 400));
+            
+            
             showKeyboard = true;
             CCLog("setSizeYet %d",setSizeYet);
             //CCSize screenSize = CCDirector::sharedDirector()->getWinSize();
@@ -562,17 +878,42 @@ void ChatView::onText(cocos2d::CCObject *obj, TextFiledEventType tt) {
             break;
         case cocos2d::ui::TEXTFIELD_EVENT_DETACH_WITH_IME:
         {
+            CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
+            float nw = 400*fs.width/640;
+            tf->setSize(CCSizeMake(nw, 58));
             //关闭键盘
             CCLog("event detach with ime");
             bottom->runAction(CCMoveTo::create(0.225, ccp(0, 0)));
             //CCEGLView *pegl = CCDirector::sharedDirector()->getOpenGLView();
             //pegl->setIMEKeyboardState(false);
+            //
+            tf->setTouchEnabled(true);
             
         }
             break;
         case cocos2d::ui::TEXTFIELD_EVENT_INSERT_TEXT:
+        {
+            adjustBut();
+        }
+            break;
+        case cocos2d::ui::TEXTFIELD_EVENT_DELETE_BACKWARD:
+        {
+            adjustBut();
+        }
             break;
         default:
             break;
+    }
+}
+
+void ChatView::adjustBut() {
+    string con = tf->getStringValue();
+    if (con.length() > 0) {
+        add->setEnabled(false);
+        send->setEnabled(true);
+    } else {
+        add->setEnabled(true);
+        send->setEnabled(false);
+        
     }
 }

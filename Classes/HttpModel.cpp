@@ -52,6 +52,7 @@ string url_encode(string value){
     return escaped.str();
 }
 void HttpModel::addRequest(string url, string method, std::map<string, string> postData, CCObject *object, MyHttpResp psel, void *param){
+    CCLog("addRequest %s", url.c_str());
     CCHttpRequest *request = new CCHttpRequest();
     
     if (method == "POST") {

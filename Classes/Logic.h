@@ -16,18 +16,17 @@
 
 using namespace cocos2d;
 
+extern bool DEBUG;
+
 class Logic : CCObject {
 public:
     static Logic *getInstance();
     Logic();
     void initMatchInfo();
     
-    int getUID() {
-        return uid;
-    }
-    void setUID(int i){
-        uid = i;
-    }
+    int getUID();
+    void setUID(int i);
+    
     
     bool initMatchYet;
     bool requestYet;
@@ -39,9 +38,20 @@ public:
     string password;
     string nickname;
     
+    void storeData();
+    
     //当前选择的比赛信息
     const rapidjson::Value *matchInfo;
+    
+    //本地存储的声音文件的编号
+    int getVid();
+    int getImgId();
 private:
+    int vid;
+    //本地缓存的图像ID 可以暂时不保存到本地文件系统里面 保存在聊天室里面即可
+    int imgId;
+    
+    
     int uid;
     
     void initMatchOver(bool isSuc, string s, void *);

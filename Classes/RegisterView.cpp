@@ -10,6 +10,7 @@
 #include "HttpModel.h"
 #include "FinishReg.h"
 #include "Logic.h"
+#include "Md5.h"
 
 CCScene *RegisterView::scene(){
     CCScene *scene = CCScene::create();
@@ -98,9 +99,10 @@ void RegisterView::onReg(cocos2d::CCObject *obj, TouchEventType tt){
             HttpModel *hm = HttpModel::getInstance();
             std::map<string, string>pd;
             pd["loginName"] = pn;
-            pd["password"] = p1;
+            pd["password"] = md5(p1);
+            
             //pd["password"] =
-            hm->addRequest("register", "POST", pd, this, MYHTTP_SEL(RegisterView::registerOver), NULL);
+            hm->addRequest("user/register", "POST", pd, this, MYHTTP_SEL(RegisterView::registerOver), NULL);
             
         }
             break;

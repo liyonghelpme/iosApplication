@@ -26,7 +26,7 @@ public:
 private:
     void onFin(CCObject *, TouchEventType);
     void registerOver(bool suc, std::string s, void *param);
-    
+    void onHead(CCObject*, TouchEventType);
     
     bool inReg;
     
@@ -35,10 +35,12 @@ private:
     
     Label *error;
     Layout *netLay;
+    Button *head;
     
     
     Widget *w;
     
+    bool setHeadYet;
     
     
 };

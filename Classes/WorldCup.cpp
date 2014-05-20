@@ -9,6 +9,9 @@
 #include "WorldCup.h"
 #include "Logic.h"
 #include "ChatView.h"
+#include "ConfigView.h"
+#include "FriendView.h"
+
 
 using namespace extension;
 using namespace ui;
@@ -50,6 +53,11 @@ bool WorldCup::init(){
     w->setSizeType(SIZE_ABSOLUTE);
     w->setSize(size);
     
+    Button *conf = static_cast<Button*>(UIHelper::seekWidgetByName(w, "Button_6"));
+    conf->addTouchEventListener(this, toucheventselector(WorldCup::onConf));
+    
+    Button *fri = static_cast<Button*>(UIHelper::seekWidgetByName(w, "Button_5"));
+    fri->addTouchEventListener(this, toucheventselector(WorldCup::onFri));
     /*
     UIPanel *pan = static_cast<UIPanel*>(UIHelper::seekWidgetByName(w, "dayPanel"));
     UIListView *lv = static_cast<UIListView*>(UIHelper::seekWidgetByName(w, "listView"));
@@ -74,6 +82,59 @@ bool WorldCup::init(){
     return true;
     
 }
+void WorldCup::onFri(cocos2d::CCObject *obj, TouchEventType tt){
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_MOVED:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_ENDED:
+        {
+            CCDirector::sharedDirector()->pushScene(FriendView::scene());
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_CANCELED:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+void WorldCup::onConf(cocos2d::CCObject *obj, TouchEventType tt){
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_MOVED:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_ENDED:
+        {
+            CCDirector::sharedDirector()->pushScene(ConfigView::scene());
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_CANCELED:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+
 void WorldCup::update(float diff){
     if (!showYet) {
         if (!Logic::getInstance()->requestYet) {
@@ -152,7 +213,7 @@ void WorldCup::update(float diff){
                 Layout *ly = static_cast<Layout*>(cp->clone());
                 Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "Button_12"));
                 ly->setTag(c["id"].GetInt());
-                bnt->setTag(c["id"].GetInt());
+                bnt->setTag(i);
                 bnt->addTouchEventListener(this, toucheventselector(WorldCup::onChat));
                 lv->pushBackCustomItem(ly);
                 

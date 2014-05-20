@@ -45,6 +45,18 @@ private:
     void onSpeak(CCObject*, TouchEventType);
     void onSay(CCObject*   , TouchEventType);
     void onOtherVoice(CCObject *, TouchEventType);
+    void onChatInfo(CCObject*, TouchEventType);
+    void onAdd(CCObject*, TouchEventType);
+    
+    //listView 的两个事件不是同时可用的 有项目的时候这个可用
+    void onBackground(CCObject*, ListViewEventType);
+    //没有项目的时候 该事件可用
+    void onBackgroundTouch(CCObject*, TouchEventType);
+    
+    void onVoice(CCObject*, TouchEventType);
+    
+    
+    void adjustBut();
     
     UIPanel *oneWord;
     //UIButton *content;
@@ -71,9 +83,10 @@ private:
     bool inVoice;
     
     Layout *myvoice;
-    ImageView *myvImg;
+    //ImageView *myvImg;
+    Button *myvImg;
     
-    int vid;
+    //int vid;
     
     Layout *otherVoice;
     UIImageView *ohead;
@@ -81,5 +94,13 @@ private:
     
     bool showKeyboard;
     
+    
+    UIButton *add, *send;
+    
+    bool selectImgYet;
+
+    //int chatImgId;
+    
+    //float getInputWidth();
 };
 #endif /* defined(__TestCpp__ChatView__) */

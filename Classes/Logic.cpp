@@ -9,13 +9,30 @@
 #include "Logic.h"
 #include <string>
 #include <map>
+
+bool DEBUG = true;
+
 static Logic *s_Logic = NULL;
 Logic::Logic():
 initMatchYet(false)
 , requestYet(false)
 , uid(0)
+, vid(1)
 {
     
+}
+int Logic::getImgId(){
+    return imgId++;
+}
+int Logic::getVid(){
+    return vid++;
+}
+
+int Logic::getUID() {
+    return uid;
+}
+void Logic::setUID(int i){
+    uid = i;
 }
 Logic *Logic::getInstance(){
     if (s_Logic == NULL) {
@@ -27,7 +44,7 @@ Logic *Logic::getInstance(){
 void Logic::initMatchInfo(){
     HttpModel *hm = HttpModel::getInstance();
     std::map<string, string> postData;
-    hm->addRequest("getMatches", "GET", postData, this, MYHTTP_SEL(Logic::initMatchOver), NULL);
+    hm->addRequest("match", "GET", postData, this, MYHTTP_SEL(Logic::initMatchOver), NULL);
     requestYet = true;
     
 }
@@ -48,4 +65,10 @@ void Logic::initMatchOver(bool isSuc, string s, void *param) {
         
     }
     */
+}
+void Logic::storeData() {
+    CCUserDefault *u = CCUserDefault::sharedUserDefault();
+    u->setStringForKey("loginName", loginName);
+    u->setStringForKey("nickname", nickname);
+    u->setIntegerForKey("uid", uid);
 }

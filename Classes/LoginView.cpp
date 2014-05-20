@@ -11,6 +11,7 @@
 #include "RegisterView.h"
 #include "Logic.h"
 #include "WorldCup.h"
+#include "Md5.h"
 
 
 CCScene *LoginView::scene(){
@@ -33,7 +34,7 @@ bool LoginView::init(){
     }
     setSizeYet = false;
     inLogin = false;
-    
+    checkYet = false;
     
     CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
     CCSize size = CCDirector::sharedDirector()->getVisibleSize();
@@ -64,17 +65,9 @@ bool LoginView::init(){
     scheduleUpdate();
     
     CCUserDefault *u = CCUserDefault::sharedUserDefault();
-    std::string uname = u->getStringForKey("loginName");
+    string p = u->getXMLFilePath();
+    CCLog("uf path %s", p.c_str());
     
-    //登录 或者注册
-    if (uname.compare("") == 0) {
-        
-    //用户登录过 直接进入应用
-    }else {
-        Logic::getInstance()->loginName = uname;
-        Logic::getInstance()->setUID(u->getIntegerForKey("uid"));
-        Logic::getInstance()->nickname = u->getStringForKey("nickname");
-    }
     
     
     return true;
@@ -198,8 +191,8 @@ void LoginView::onLogin(CCObject *obj, TouchEventType tt){
             HttpModel *hm = HttpModel::getInstance();
             std::map<string, string>pd;
             pd["loginName"] = ln;
-            pd["password"] = pw;
-            hm->addRequest("login", "GET", pd, this, MYHTTP_SEL(LoginView::loginOver), NULL);
+            pd["password"] = md5(pw);
+            hm->addRequest("user/login", "POST", pd, this, MYHTTP_SEL(LoginView::loginOver), NULL);
         }
             
             break;
@@ -226,7 +219,15 @@ void LoginView::loginOver(bool suc, std::string s, void *param) {
         error->runAction(CCSequence::create(CCScaleTo::create(0.1, 1.2, 1.2), CCScaleTo::create(0.1, 1, 1), NULL));
         error->setText(d["err"].GetString());
     }else {
+        CCLog("登录成功 获得用户数据");
         Logic::getInstance()->setUID(d["uid"].GetInt());
+        Logic *lg = Logic::getInstance();
+        
+        lg->loginName = d["udata"]["loginName"].GetString();
+        lg->nickname = d["udata"]["nickname"].GetString();
+        
+        lg->storeData();
+        CCDirector::sharedDirector()->replaceScene(WorldCup::scene());
     }
     
 }
@@ -259,5 +260,24 @@ void LoginView::onReg(CCObject *obj, TouchEventType tt) {
 
 
 void LoginView::update(float diff){
-    
+    if (!checkYet) {
+        checkYet = true;
+        
+        CCUserDefault *u = CCUserDefault::sharedUserDefault();
+        std::string uname = u->getStringForKey("loginName");
+        
+        //登录 或者注册
+        if (uname.compare("") == 0) {
+            
+        //用户登录过 直接进入应用
+        }else {
+            Logic::getInstance()->loginName = uname;
+            Logic::getInstance()->setUID(u->getIntegerForKey("uid"));
+            Logic::getInstance()->nickname = u->getStringForKey("nickname");
+            
+            CCLog("该用户已经登陆过 进入比赛页面");
+            CCDirector::sharedDirector()->replaceScene(WorldCup::scene());
+            
+        }
+    }
 }

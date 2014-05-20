@@ -17,6 +17,7 @@ void *stopRecord();
 void startPlay();
 void startSend(const char*);
 void sendText(std::string);
+void sendImage();
 
 const char *getFileName();
 
@@ -36,4 +37,12 @@ void storeFile(const unsigned char*con, int len, int vid);
 void playVoice(int vid);
 
 void startReceiveRedis();
+void openImageSelect();
+
+void *getImage(int *length);
+
+bool checkGetYet();
+
+int getMyRecordVid();
+
 #endif

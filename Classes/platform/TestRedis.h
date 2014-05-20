@@ -22,6 +22,7 @@
 -(id) init;
 -(void) connect;
 -(void) sendVoice:(const char *)fn;
+-(void) sendImg;
 +(id)sharedRedis;
 
 //-(void) connectAsync;

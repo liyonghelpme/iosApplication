@@ -12,6 +12,7 @@
 @interface TestVoice : NSObject <AVAudioRecorderDelegate, AVAudioPlayerDelegate> {
     AVAudioRecorder *recorder;
     AVAudioPlayer *player;
+    int myVid;
     //NSString *recordPath;
 }
 

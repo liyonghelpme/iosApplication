@@ -10,6 +10,9 @@
 #include "HttpModel.h"
 #include "Logic.h"
 #include "WorldCup.h"
+#include "RedisInterface.h"
+#include "MyBase64.h"
+
 
 
 CCScene *FinishReg::scene(){
@@ -31,6 +34,9 @@ bool FinishReg::init() {
         return false;
     }
     inReg = false;
+    setHeadYet = false;
+    
+    
     CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
     CCSize size = CCDirector::sharedDirector()->getVisibleSize();
     UILayer *lay = UILayer::create();
@@ -48,11 +54,44 @@ bool FinishReg::init() {
     error = static_cast<Label*>(UIHelper::seekWidgetByName(w, "error"));
     error->setEnabled(false);
     
+    head = static_cast<Button*>(UIHelper::seekWidgetByName(w, "head"));
+    head->addTouchEventListener(this, toucheventselector(FinishReg::onHead));
+    
     
     netLay = static_cast<Layout*>(UIHelper::seekWidgetByName(w, "Panel_8"));
     netLay->setEnabled(false);
     
+    
+    scheduleUpdate();
     return true;
+}
+void FinishReg::onHead(CCObject *obj, TouchEventType tt) {
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_MOVED:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_ENDED:
+        {
+            //当前未设置头像 重新获取头像数据
+            setHeadYet = false;
+            openImageSelect();
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_CANCELED:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
 }
 
 void FinishReg::onFin(cocos2d::CCObject *obj, TouchEventType tt){
@@ -91,8 +130,20 @@ void FinishReg::onFin(cocos2d::CCObject *obj, TouchEventType tt){
             pd["nickname"] = n;
             netLay->setEnabled(true);
             
-            //pd["password"] =
-            hm->addRequest("finReg", "POST", pd, this, MYHTTP_SEL(FinishReg::registerOver), NULL);
+            //base64 编码的头像数据
+            int len;
+            void *data = getImage(&len);
+            if (data != NULL) {
+                int olen;
+                char *b64 = base64_encode((unsigned char*)data, (size_t)len, (size_t *)&olen);
+                string hdata = string(b64, olen);
+                pd["head"] = hdata;
+                free(b64);
+                //free ImageData  _uimg
+                //dealloc sharedImageSelect
+            }
+            
+            hm->addRequest("user/finReg", "POST", pd, this, MYHTTP_SEL(FinishReg::registerOver), NULL);
         }
             break;
         case cocos2d::ui::TOUCH_EVENT_CANCELED:
@@ -130,7 +181,28 @@ void FinishReg::registerOver(bool suc, std::string s, void *param) {
     }
 }
 
-
+//可能用户取消了 选择图片
+//可能用户 换了一张图片
+//用户使用相同的 图片
 void FinishReg::update(float df){
-    
+    bool cg = checkGetYet();
+    //CCLog("set HeadYet %d %d", setHeadYet, cg);
+    if (!setHeadYet && cg) {
+        setHeadYet = true;
+        
+        int len;
+        void *data = getImage(&len);
+        CCLog("select Img %x %d", data, len);
+        
+        if (data != NULL) {
+            const char *key = "_uimg";
+            CCTexture2D *pTexture = CCTextureCache::sharedTextureCache()->textureForKey(key);
+            CCImage *pImage = new CCImage();
+            pImage->initWithImageData(data, len, CCImage::kFmtPng);
+            pTexture = CCTextureCache::sharedTextureCache()->addUIImage(pImage, key);
+            CC_SAFE_RELEASE(pImage);
+            
+            head->loadTextureNormal(key, UI_TEX_TYPE_LOCAL);
+        }
+    }
 }

@@ -7,6 +7,7 @@
 //
 
 #import "TestVoice.h"
+#include "Logic.h"
 
 @implementation TestVoice
 +(id)sharedRecord{
@@ -31,12 +32,20 @@ void storeFile(const unsigned char*con, int len, int vid){
     
 }
 
+int getMyRecordVid(){
+    TestVoice *tv = [TestVoice sharedRecord];
+    return tv->myVid;
+}
 
 -(void) test{
+    //保存自己的语音信息到本地数据存储中
+    myVid = Logic::getInstance()->getVid();
+    
+    NSString *myVoiceName = [NSString stringWithFormat:@"tempAudio%d.m4a", myVid];
     
     NSArray *pathComponents = [NSArray arrayWithObjects:
                                [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject],
-                               @"MyAudioMemo.m4a",
+                               myVoiceName,
                                nil];
     NSURL *outputFileURL = [NSURL fileURLWithPathComponents:pathComponents];
     AVAudioSession *session = [AVAudioSession sharedInstance];

@@ -57,6 +57,7 @@ private:
     TextField *phoneNum;
     Label *error;
     
+    bool checkYet;
     bool inLogin;
 };
 

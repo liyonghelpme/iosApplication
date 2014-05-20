@@ -11,6 +11,11 @@
 #include "document.h";
 #include "stringbuffer.h"
 #include "writer.h"
+#include "Logic.h"
+#import "ImgSelect.h"
+#include "MyBase64.h"
+
+
 
 
 void *receive = NULL;
@@ -203,6 +208,7 @@ void *connect(){
     rapidjson::Document::AllocatorType &allocator = d.GetAllocator();
     d.AddMember("type", "voice", allocator);
     d.AddMember("content", [b64 UTF8String], allocator);
+    d.AddMember("sender", Logic::getInstance()->nickname.c_str(), allocator);
     rapidjson::StringBuffer strbuf;
     rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
     d.Accept(writer);
@@ -217,6 +223,46 @@ void *connect(){
     NSLog(@"finish read");
 }
 
+
+-(void) sendImg{
+    if (redis == NULL) {
+        return;
+    }
+    NSLog(@"send Img to Server");
+    int len;
+    void *data = getImage(&len);
+    if (data != NULL) {
+        //NSData *data = [NSData dataWithBytes:data length:len];
+        //NSString *b64 = data.base64Encoding;
+        int olen;
+        char *odata = base64_encode((unsigned char*)data, (size_t)len, (size_t*)&olen);
+        std::string rd = string(odata, olen);
+        free(odata);
+        
+        //NSString *b64 = [data base64EncodedDataWithOptions:nil];
+        
+        rapidjson::Document d;
+        d.SetObject();
+        rapidjson::Document::AllocatorType  &allocator = d.GetAllocator();
+        d.AddMember("type", "image", allocator);
+        d.AddMember("content", rd.c_str(), allocator);
+        
+        d.AddMember("sender", Logic::getInstance()->nickname.c_str(), allocator);
+        rapidjson::StringBuffer strbuf;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
+        d.Accept(writer);
+        NSString *cmd = [NSString stringWithFormat:@"publish chat %s", strbuf.GetString()];
+        NSLog(@"send cmd");
+        //NSLog(cmd);
+        NSLog([NSString stringWithFormat:@"%d cmd %d", (int)rd.size(), (int)cmd.length]);
+        id retVal = [redis command:cmd];
+        //id retVal = [redis getReply];
+        NSLog([NSString stringWithFormat:@"retval %@", retVal]);
+        NSLog(@"finish read");
+        
+    }
+}
+
 void startSend(const char *fn){
     TestRedis *tr = [TestRedis sharedRedis];
     if (tr->redis == nil) {
@@ -224,6 +270,15 @@ void startSend(const char *fn){
     }
     [tr sendVoice:fn];
 }
+
+void sendImage(){
+    TestRedis *tr = [TestRedis sharedRedis];
+    if(tr->redis == nil) {
+        [tr connect];
+    }
+    [tr sendImg];
+}
+
 
 void sendText(std::string text){
     TestRedis *tr = [TestRedis sharedRedis];

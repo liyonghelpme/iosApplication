@@ -108,9 +108,9 @@ bool AppDelegate::applicationDidFinishLaunching() {
     
     //CCScene *pScene = WorldCup::scene();
     
-    //CCScene *pScene = ChatView::scene();
+    CCScene *pScene = ChatView::scene();
     
-    CCScene *pScene = LoginView::scene();
+    //CCScene *pScene = LoginView::scene();
     
     // run
     pDirector->runWithScene(pScene);
