@@ -106,9 +106,9 @@ bool AppDelegate::applicationDidFinishLaunching() {
     // create a scene. it's an autorelease object
     //CCScene *pScene = HelloWorld::scene();
     
-    //CCScene *pScene = WorldCup::scene();
+    CCScene *pScene = WorldCup::scene();
     
-    CCScene *pScene = ChatView::scene();
+    //CCScene *pScene = ChatView::scene();
     
     //CCScene *pScene = LoginView::scene();
     

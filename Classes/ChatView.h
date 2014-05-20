@@ -99,6 +99,9 @@ private:
     
     bool selectImgYet;
 
+    
+    bool enterChatYet;
+    
     //int chatImgId;
     
     //float getInputWidth();

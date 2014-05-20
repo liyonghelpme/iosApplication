@@ -143,7 +143,11 @@ void WorldCup::update(float diff){
         if (Logic::getInstance()->initMatchYet) {
             showYet = true;
             rapidjson::Document &d = Logic::getInstance()->d;
-            const rapidjson::Value &b = d["matches"];
+            //const rapidjson::Value &b = d["matches"];
+            
+            const rapidjson::Value &b = d["data"];
+            
+            
             UIPanel *pan = static_cast<UIPanel*>(UIHelper::seekWidgetByName(w, "dayPanel"));
             pan->setEnabled(false);
             
@@ -167,16 +171,31 @@ void WorldCup::update(float diff){
             UILabel *client = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "client"));
             
             UIListView *lv = static_cast<UIListView*>(UIHelper::seekWidgetByName(w, "listView"));
-            string date;
+            //string date;
             char on[1024];
             
             string emp = " ";
+            int date = -1;
+            string DAY[] = {
+                "周日", "周一", "周二", "周三", "周四", "周五", "周六",
+            };
             for (rapidjson::SizeType i=0; i < b.Size(); i++) {
                 const rapidjson::Value &c = b[i];
-                string d = c["date"].GetString();
+                //string d = c["date"].GetString();
+                //毫秒
+                long long start_time = c["start_time"].GetUint64();
+                start_time /= 1000;
+                
+                tm *timeinfo;
+                timeinfo = localtime((time_t*)&(start_time));
+                int wd = timeinfo->tm_wday;
+                int day = timeinfo->tm_yday;
+                
                 //new Data push dayPanel
                 //不同天
-                
+                if (date != ) {
+                    <#statements#>
+                }
                 if (d.compare(date) != 0) {
                     date = d;
                     string fd = c["week"].GetString()+emp+date;

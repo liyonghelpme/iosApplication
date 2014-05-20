@@ -42,6 +42,7 @@ bool ChatView::init(){
     inVoice = false;
     //vid = 0;
     selectImgYet = false;
+    enterChatYet = false;
     
     
     CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
@@ -621,7 +622,14 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
     }
 }
 void ChatView::update(float diff){
-    
+    if (!enterChatYet) {
+        enterChatYet = true;
+        HttpModel *hm = HttpModel::getInstance();
+        std::map<string, string> postData;
+        postData["uid"] = Logic::getInstance()->getUID();
+        postData["cid"] = Logic::getInstance()->getCID();
+        //hm->addRequest("enterChannel", "POST", <#std::map<std::string, std::string> postData#>, <#cocos2d::CCObject *object#>, <#MyHttpResp pSelector#>, <#void *param#>)
+    }
     //打开过图片选择 并且 确认 获取图片 数据了
     if (selectImgYet && checkGetYet()) {
         selectImgYet = false;

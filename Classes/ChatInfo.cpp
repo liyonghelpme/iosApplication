@@ -44,11 +44,14 @@ bool ChatInfo::init(){
     row->setEnabled(false);
     
     lv = static_cast<ListView*>(UIHelper::seekWidgetByName(w, "ListView_5"));
+    
+    /*
     for (int i=0; i < 5; i++) {
         Layout* rc = (Layout*)row->clone();
         rc->setEnabled(true);
         lv->pushBackCustomItem(rc);
     }
+    */
     
     Button *back = static_cast<Button*>(UIHelper::seekWidgetByName(w, "Button_4"));
     back->addTouchEventListener(this, toucheventselector(ChatInfo::onBack));
@@ -85,10 +88,35 @@ void ChatInfo::onBack(CCObject*obj, TouchEventType tt){
 
 }
 
+//登录房间的时候 应该附带有用户的基本讯息
 void ChatInfo::update(float dt){
+    //获取房间信息
     if (!getYet) {
-        if (!Logi) {
-            <#statements#>
+        if (!Logic::getInstance()->chatInfoYet) {
+            Logic::getInstance()->initChatInfo();
+        } else if (Logic::getInstance()->initChatYet){
+            getYet = true;
+            rapidjson::Document &d = Logic::getInstance()->chatD;
+            rapidjson::Value &b = d["channel"];
+            Layout *rc;
+            Button *b1, *b2, *b3;
+            for (int i =0; i < b.Size(); i++) {
+                if (i%3 == 0) {
+                    rc = (Layout*)row->clone();
+                    rc->setEnabled(true);
+                    lv->pushBackCustomItem(rc);
+                    b1 = static_cast<Button*>(UIHelper::seekWidgetByName(rc, "Button_7"));
+                    b2 = static_cast<Button*>(UIHelper::seekWidgetByName(rc, "Button_9"));
+                    b3 = static_cast<Button*>(UIHelper::seekWidgetByName(rc, "Button_10"));
+                    b2->setEnabled(false);
+                    b3->setEnabled(false);
+                } else if(i % 3 == 1) {
+                    b2->setEnabled(true);
+                }  else {
+                    b3->setEnabled(true);
+                }
+            }
+            
         }
     }
 }
