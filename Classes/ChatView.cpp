@@ -142,6 +142,8 @@ bool ChatView::init(){
     speak->setEnabled(false);
     speak->addTouchEventListener(this, toucheventselector(ChatView::onSpeak));
     
+    backbnt = static_cast<Button*>(UIHelper::seekWidgetByName(w, "Button_11"));
+    backbnt->addTouchEventListener(this, toucheventselector(ChatView::onBack));
     
     
     
@@ -249,6 +251,51 @@ bool ChatView::init(){
     scheduleUpdate();
     return true;
 }
+
+
+void ChatView::onBack(cocos2d::CCObject *obj, TouchEventType tt){
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_MOVED:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_ENDED:
+        {
+            CCDirector::sharedDirector()->popScene();
+            //退出聊天室就无法接受回调了可以交给Logic来处理
+            
+            HttpModel *hm = HttpModel::getInstance();
+            std::map<string, string> postData;
+            char buf[256];
+            sprintf(buf, "%d", Logic::getInstance()->getUID());
+            postData["uid"] = buf;
+            sprintf(buf, "%d", Logic::getInstance()->getCID());
+            postData["cid"] = buf;
+            
+            //postData["uid"] = Logic::getInstance()->getUID();
+            //postData["cid"] = Logic::getInstance()->getCID();
+            hm->addRequest("exitChannel", "POST", postData, NULL, NULL, NULL);
+        }
+            
+            
+            break;
+        case cocos2d::ui::TOUCH_EVENT_CANCELED:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+
 
 //点击listView 则 关闭键盘 detachIME
 void ChatView::onBackground(cocos2d::CCObject *obj, ListViewEventType tt){
@@ -621,14 +668,24 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
             break;
     }
 }
+
+//使用redis的 超时机制来注册用户的频道怎么样呢？
+void ChatView::onEnterChat(bool isSuc, string s, void *param){
+    CCLog("enter Chat suc");
+}
+
+
 void ChatView::update(float diff){
     if (!enterChatYet) {
         enterChatYet = true;
         HttpModel *hm = HttpModel::getInstance();
         std::map<string, string> postData;
-        postData["uid"] = Logic::getInstance()->getUID();
-        postData["cid"] = Logic::getInstance()->getCID();
-        //hm->addRequest("enterChannel", "POST", <#std::map<std::string, std::string> postData#>, <#cocos2d::CCObject *object#>, <#MyHttpResp pSelector#>, <#void *param#>)
+        char buf[256];
+        sprintf(buf, "%d", Logic::getInstance()->getUID());
+        postData["uid"] = buf;
+        sprintf(buf, "%d", Logic::getInstance()->getCID());
+        postData["cid"] = buf;
+        hm->addRequest("enterChannel", "POST", postData, this, MYHTTP_SEL(ChatView::onEnterChat), NULL);
     }
     //打开过图片选择 并且 确认 获取图片 数据了
     if (selectImgYet && checkGetYet()) {

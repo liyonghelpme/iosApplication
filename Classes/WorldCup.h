@@ -25,13 +25,35 @@ public:
     // there's no 'id' in cpp, so we recommend returning the class instance pointer
     static cocos2d::CCScene* scene();
     CREATE_FUNC(WorldCup);
+    
+    ~WorldCup();
+    
 private:
     void onChat(CCObject*, TouchEventType);
     void onConf(CCObject*, TouchEventType);
     void onFri(CCObject*, TouchEventType);
+    void onListview(CCObject*, ListViewEventType);
+    void onScroll(CCObject*, ScrollviewEventType);
+    void onRefresh(bool isSuc, std::string s, void* p);
+    
+    
+    void refreshOnlineNum(float);
+    
+    float lastRefreshTime;
+    bool inRefresh;
+    int lastUpdateIndex;
+    
     
     bool showYet;
     cocos2d::ui::Widget *w;
     
+    ListView *lv;
+    Label *dlab;
+    UIWidget *pc, *cp;
+    
+    bool inUpdateData;
+    int oldOrNew;
+    
+    CCDictionary *dict;
 };
 #endif /* defined(__TestCpp__WorldCup__) */

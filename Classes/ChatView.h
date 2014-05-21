@@ -47,6 +47,8 @@ private:
     void onOtherVoice(CCObject *, TouchEventType);
     void onChatInfo(CCObject*, TouchEventType);
     void onAdd(CCObject*, TouchEventType);
+    void onEnterChat(bool isSuc, std::string s, void *);
+    
     
     //listView 的两个事件不是同时可用的 有项目的时候这个可用
     void onBackground(CCObject*, ListViewEventType);
@@ -91,6 +93,9 @@ private:
     Layout *otherVoice;
     UIImageView *ohead;
     Button *ovoice;
+    Button *backbnt;
+
+    void onBack(CCObject*, TouchEventType);
     
     bool showKeyboard;
     

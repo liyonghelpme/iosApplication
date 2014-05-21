@@ -23,8 +23,8 @@ HttpModel *HttpModel::getInstance(){
     return s_http;
 }
 HttpModel::HttpModel(){
-    //baseUrl = "http://localhost:5000/";
-    baseUrl = "http://172.17.0.145:91/";
+    baseUrl = "http://localhost:5000/";
+    //baseUrl = "http://172.17.0.145:91/";
 }
 struct TempData {
     CCObject *object;
@@ -126,9 +126,12 @@ void HttpModel::handleHttp(CCHttpClient *client, CCHttpResponse *resp){
     printf("name is %s\n", d["loginName"].GetString());
     */
     TempData *td = (TempData*)resp->getHttpRequest()->getUserData();
-    MyHttpResp cb = td->psel;
-    //cb();
-    ((*(td->object)).*cb)(true, ch, td->param);
+    
+    if (td->object != NULL) {
+        MyHttpResp cb = td->psel;
+        //cb();
+        ((*(td->object)).*cb)(true, ch, td->param);
+    }
     
     //(td->object->(*cb))(true, d, td->param);
     //(&cb)(td->object, true, d, td->param);

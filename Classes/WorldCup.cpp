@@ -11,6 +11,7 @@
 #include "ChatView.h"
 #include "ConfigView.h"
 #include "FriendView.h"
+#include <stdlib.h>
 
 
 using namespace extension;
@@ -29,12 +30,25 @@ CCScene *WorldCup::scene(){
     // return the scene
     return scene;
 }
+WorldCup::~WorldCup(){
+    dict->release();
+}
+
 bool WorldCup::init(){
     if ( !CCLayer::init() )
     {
         return false;
     }
     showYet = false;
+    inUpdateData = false;
+    oldOrNew = 0;
+    lastRefreshTime = 0;
+    inRefresh = false;
+    lastUpdateIndex = 0;
+    dict = CCDictionary::create();
+    dict->retain();
+    
+    
     
     CCSize size = CCDirector::sharedDirector()->getVisibleSize();
     CCLog("winSize %f %f", size.width, size.height);
@@ -58,6 +72,30 @@ bool WorldCup::init(){
     
     Button *fri = static_cast<Button*>(UIHelper::seekWidgetByName(w, "Button_5"));
     fri->addTouchEventListener(this, toucheventselector(WorldCup::onFri));
+    lv = static_cast<UIListView*>(UIHelper::seekWidgetByName(w, "listView"));
+    lv->addEventListenerListView(this, listvieweventselector(WorldCup::onListview));
+    lv->addEventListenerScrollView(this, scrollvieweventselector(WorldCup::onScroll));
+    
+    
+    UIPanel *pan = static_cast<UIPanel*>(UIHelper::seekWidgetByName(w, "dayPanel"));
+    pan->setEnabled(false);
+    
+    pc = pan->clone();
+    pc->setVisible(true);
+    pc->setEnabled(true);
+    pc->retain();
+    
+    dlab = static_cast<UILabel*>(UIHelper::seekWidgetByName(pc, "date"));
+    
+    UIPanel *cupPanel = static_cast<UIPanel*>(UIHelper::seekWidgetByName(w, "cupPanel"));
+    cupPanel->setEnabled(false);
+    
+    cp = cupPanel->clone();
+    cp->setVisible(true);
+    cp->setEnabled(true);
+    cp->retain();
+    
+    
     /*
     UIPanel *pan = static_cast<UIPanel*>(UIHelper::seekWidgetByName(w, "dayPanel"));
     UIListView *lv = static_cast<UIListView*>(UIHelper::seekWidgetByName(w, "listView"));
@@ -82,6 +120,65 @@ bool WorldCup::init(){
     return true;
     
 }
+
+
+//当移动到 顶部或者 底部 暂停滑动 更新数据
+void WorldCup::onScroll(cocos2d::CCObject *obj, ScrollviewEventType st){
+    CCLog("scroll event %d", st);
+    switch (st) {
+        //放手后回到顶部开始
+        case cocos2d::ui::SCROLLVIEW_EVENT_SCROLL_TO_TOP:
+        {
+            if (!inUpdateData) {
+                inUpdateData = true;
+                oldOrNew = 0;
+                bool fs = Logic::getInstance()->fetchOldMatchInfo();
+                if (!fs) {
+                    inUpdateData = false;
+                } else {
+                    Logic::getInstance()->clearTestNum();
+                }
+            }
+        }
+            break;
+        //放手后 回到底部开始
+        case cocos2d::ui::SCROLLVIEW_EVENT_SCROLL_TO_BOTTOM:
+        {
+            if (!inUpdateData) {
+                inUpdateData = true;
+                oldOrNew = 1;
+                bool fs = Logic::getInstance()->fetchNewMatchInfo();
+                if (!fs) {
+                    inUpdateData = false;
+                }else {
+                    Logic::getInstance()->clearTestNum();
+                }
+            }
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+
+void WorldCup::onListview(cocos2d::CCObject *obj, ListViewEventType lt) {
+    switch (lt) {
+        case cocos2d::ui::LISTVIEW_ONSELECTEDITEM_START:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::LISTVIEW_ONSELECTEDITEM_END:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+
 void WorldCup::onFri(cocos2d::CCObject *obj, TouchEventType tt){
     switch (tt) {
         case cocos2d::ui::TOUCH_EVENT_BEGAN:
@@ -134,43 +231,88 @@ void WorldCup::onConf(cocos2d::CCObject *obj, TouchEventType tt){
             break;
     }
 }
+void WorldCup::onRefresh(bool isSuc, std::string s, void *p){
+    inRefresh = false;
+    if (isSuc) {
+        rapidjson::Document d;
+        d.Parse<0>(s.c_str());
+        int count = d["count"].GetInt();
+        //cid 对应的 Layout对象
+        Layout *ly = (Layout*)(dict->objectForKey(*(int*)p));
+        free(p);
+        
+        Label *onlineNum = (Label*)(UIHelper::seekWidgetByName(ly, "Label_16"));
+        char onum[128];
+        sprintf(onum, "在线: %d人", count);
+        onlineNum->setText(onum);
+        
+        CCLog("online people %d", count);
+    }
+}
 
+//更新数据所对应的 item的条目是那一条呢？
+void WorldCup::refreshOnlineNum(float diff){
+    if (!inRefresh) {
+        lastRefreshTime = lastRefreshTime-diff;
+        if (lastRefreshTime <= 0 ) {
+            //inRefresh = true;
+            
+            HttpModel *hm = HttpModel::getInstance();
+            std::map<string, string> postData;
+            rapidjson::Document *d = Logic::getInstance()->d;
+            //初始化比赛信息结束 之后 才可以 刷新比赛的 在线人数信息
+            if ((*d).IsObject()) {
+            
+                if (!(*d)["data"].IsNull() && lastUpdateIndex < (*d)["data"].Size()) {
+                    inRefresh = true;
+                    //请求的
+                    int mid = (*d)["data"][lastUpdateIndex++]["id"].GetInt();
+                    char buf[128];
+                    sprintf(buf, "%d", mid);
+                    postData["cid"] =  buf;
+                    
+                
+                    int *cid = (int*)malloc(sizeof(int));
+                    *cid = mid;
+                
+                    hm->addRequest("getUserCount", "GET", postData, this, MYHTTP_SEL(WorldCup::onRefresh), cid);
+                }else {
+                    //超过长度 则 处于refresh 状态
+                    //inRefresh = true;
+                    lastUpdateIndex = 0;
+                    //下次更新100s之后
+                    lastRefreshTime = 5;
+                }
+            }
+        }
+    }
+}
+
+
+//停止更新数据
 void WorldCup::update(float diff){
+    refreshOnlineNum(diff);
     if (!showYet) {
-        if (!Logic::getInstance()->requestYet) {
+        if (!Logic::getInstance()->requestYet && !inUpdateData) {
+            inUpdateData = true;
             Logic::getInstance()->initMatchInfo();
         }
         if (Logic::getInstance()->initMatchYet) {
             showYet = true;
-            rapidjson::Document &d = Logic::getInstance()->d;
+            inUpdateData = false;
+            
+            rapidjson::Document *d = Logic::getInstance()->d;
             //const rapidjson::Value &b = d["matches"];
             
-            const rapidjson::Value &b = d["data"];
-            
-            
-            UIPanel *pan = static_cast<UIPanel*>(UIHelper::seekWidgetByName(w, "dayPanel"));
-            pan->setEnabled(false);
-            
-            UIWidget *pc = pan->clone();
-            pc->setVisible(true);
-            pc->setEnabled(true);
-            
-            UILabel *dlab = static_cast<UILabel*>(UIHelper::seekWidgetByName(pc, "date"));
-            
-            UIPanel *cupPanel = static_cast<UIPanel*>(UIHelper::seekWidgetByName(w, "cupPanel"));
-            cupPanel->setEnabled(false);
-            
-            UIWidget *cp = cupPanel->clone();
-            cp->setVisible(true);
-            cp->setEnabled(true);
+            const rapidjson::Value &b = (*d)["data"];
             
             
             UILabel *title = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "Label_11"));
             UILabel *online = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "Label_16"));
             UILabel *host = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "host"));
             UILabel *client = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "client"));
+            //Button *
             
-            UIListView *lv = static_cast<UIListView*>(UIHelper::seekWidgetByName(w, "listView"));
             //string date;
             char on[1024];
             
@@ -179,6 +321,9 @@ void WorldCup::update(float diff){
             string DAY[] = {
                 "周日", "周一", "周二", "周三", "周四", "周五", "周六",
             };
+            time_t now;
+            time(&now);
+            
             for (rapidjson::SizeType i=0; i < b.Size(); i++) {
                 const rapidjson::Value &c = b[i];
                 //string d = c["date"].GetString();
@@ -190,12 +335,22 @@ void WorldCup::update(float diff){
                 timeinfo = localtime((time_t*)&(start_time));
                 int wd = timeinfo->tm_wday;
                 int day = timeinfo->tm_yday;
-                
+                int mon = timeinfo->tm_mon;
+                int mday = timeinfo->tm_mday;
+                int hour = timeinfo->tm_hour;
+                int min = timeinfo->tm_min;
                 //new Data push dayPanel
                 //不同天
-                if (date != ) {
-                    <#statements#>
+                char minfo[128];
+                sprintf(minfo, "%.2d/%.2d", mon+1, mday);
+                if (date != day) {
+                    date = day;
+                    string fd = DAY[wd]+emp+minfo;
+                    dlab->setText(fd);
+                    lv->pushBackCustomItem(pc->clone());
                 }
+                
+                /*
                 if (d.compare(date) != 0) {
                     date = d;
                     string fd = c["week"].GetString()+emp+date;
@@ -203,15 +358,7 @@ void WorldCup::update(float diff){
                     
                     lv->pushBackCustomItem(pc->clone());
                     
-                    
-                    /*
-                    string tit = c["title"].GetString();
-                    tit += c["time"].GetString();
-                    title->setText(tit);
-                    sprintf(on, "在线:%d人", c["online"].GetInt());
-                    online->setText(on);
-                    lv->pushBackCustomItem(cp->clone());
-                    */
+                
                     
                     //同一天
                 }else {
@@ -219,26 +366,193 @@ void WorldCup::update(float diff){
                     //lv->pushBackCustomItem(pc->clone());
                     
                 }
+                */
                 //添加比赛信息
-                string tit = c["title"].GetString();
-                tit += emp+ c["time"].GetString();
+                sprintf(minfo, "%.2d:%.2d", hour, min);
+                
+                string tit = c["cate_name"].GetString();
+                if(!c["title"].IsNull()) {
+                    tit += emp+c["title"].GetString()+emp+minfo;
+                }
+                //string tit = c["title"].GetString();
+                //tit += emp+ c["time"].GetString();
+                
                 title->setText(tit);
                 
-                sprintf(on, "在线:%d人", c["online"].GetInt());
+                int ol = 0;
+                //c["online"].GetInt()
+                sprintf(on, "在线:%d人", ol);
                 online->setText(on);
-                host->setText(c["name1"].GetString());
-                client->setText(c["name2"].GetString());
+                host->setText(c["host_name"].GetString());
+                client->setText(c["guest_name"].GetString());
                 
                 Layout *ly = static_cast<Layout*>(cp->clone());
+                
+                long long end_time = c["end_time"].GetUint64();
+                end_time /= 1000;
+                
+                
+                
+                
                 Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "Button_12"));
+                if (now >= end_time) {
+                    bnt->setTitleText("已经结束");
+                } else if(now >= start_time) {
+                    bnt->setTitleText("立即进入");
+                } else {
+                    bnt->setTitleText("尚未开始");
+                }
+                
+                
                 ly->setTag(c["id"].GetInt());
-                bnt->setTag(i);
+                //use Match Id
+                
+                bnt->setTag(c["id"].GetInt());
                 bnt->addTouchEventListener(this, toucheventselector(WorldCup::onChat));
+                //比赛信息对应的 选择Item
+                dict->setObject(ly, c["id"].GetInt());
+                
                 lv->pushBackCustomItem(ly);
                 
             }
             
         }
+    }
+    
+    //正在等待网络更新比赛数据 向上 向下
+    //网络数据已经获得了
+    if (inUpdateData && Logic::getInstance()->initMatchYet) {
+        inUpdateData = false;
+        
+        rapidjson::Document *d = Logic::getInstance()->d;
+        //const rapidjson::Value &b = d["matches"];
+        
+        const rapidjson::Value &b = (*d)["data"];
+        
+        
+        UILabel *title = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "Label_11"));
+        UILabel *online = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "Label_16"));
+        UILabel *host = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "host"));
+        UILabel *client = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "client"));
+        
+        
+        //string date;
+        char on[1024];
+        
+        string emp = " ";
+        int date = -1;
+        string DAY[] = {
+            "周日", "周一", "周二", "周三", "周四", "周五", "周六",
+        };
+        
+        //insert at lastPosition or first Position
+        int ordInd;
+        if (Logic::getInstance()->startInd == 0) {
+            ordInd = 0;
+        }else {
+            ordInd = lv->getItems()->count();
+        }
+        //int ordInd = Logic::getInstance()->startInd;
+        
+        /*
+        if (Logic::getInstance()->startInd > 0) {
+            
+        }
+         */
+        
+        //插到头部 或者插在尾部
+        Logic *li = Logic::getInstance();
+        CCLog("start end index %d %d %d", li->startInd, li->endInd, b.Size());
+        
+        time_t now;
+        time(&now);
+        for (rapidjson::SizeType i=Logic::getInstance()->startInd; i < Logic::getInstance()->endInd; i++) {
+            const rapidjson::Value &c = b[i];
+            //string d = c["date"].GetString();
+            //CCLog(c.IsObject());
+            CCLog("type %d", c.GetType());
+            //毫秒
+            long long start_time = c["start_time"].GetUint64();
+            start_time /= 1000;
+            
+            tm *timeinfo;
+            timeinfo = localtime((time_t*)&(start_time));
+            int wd = timeinfo->tm_wday;
+            int day = timeinfo->tm_yday;
+            int mon = timeinfo->tm_mon;
+            int mday = timeinfo->tm_mday;
+            int hour = timeinfo->tm_hour;
+            int min = timeinfo->tm_min;
+            //new Data push dayPanel
+            //不同天
+            char minfo[128];
+            sprintf(minfo, "%.2d/%.2d", mon+1, mday);
+            if (date != day) {
+                date = day;
+                string fd = DAY[wd]+emp+minfo;
+                dlab->setText(fd);
+                lv->insertCustomItem(pc->clone(), ordInd++);
+                //lv->pushBackCustomItem(pc->clone());
+            }
+            
+            /*
+             if (d.compare(date) != 0) {
+             date = d;
+             string fd = c["week"].GetString()+emp+date;
+             dlab->setText(fd);
+             
+             lv->pushBackCustomItem(pc->clone());
+             
+             
+             
+             //同一天
+             }else {
+             //dlab->setText(date);
+             //lv->pushBackCustomItem(pc->clone());
+             
+             }
+             */
+            //添加比赛信息
+            sprintf(minfo, "%.2d:%.2d", hour, min);
+            
+            string tit = c["cate_name"].GetString();
+            tit += emp+c["title"].GetString()+emp+minfo;
+            
+            //string tit = c["title"].GetString();
+            //tit += emp+ c["time"].GetString();
+            
+            title->setText(tit);
+            
+            int ol = 0;
+            //c["online"].GetInt()
+            sprintf(on, "在线:%d人", ol);
+            online->setText(on);
+            host->setText(c["host_name"].GetString());
+            client->setText(c["guest_name"].GetString());
+            
+            Layout *ly = static_cast<Layout*>(cp->clone());
+            Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "Button_12"));
+            
+            long long end_time = c["end_time"].GetUint64();
+            end_time /= 1000;
+            if (now >= end_time) {
+                bnt->setTitleText("已经结束");
+            } else if(now >= start_time) {
+                bnt->setTitleText("立即进入");
+            } else {
+                bnt->setTitleText("尚未开始");
+            }
+            
+            
+            ly->setTag(c["id"].GetInt());
+            bnt->setTag(c["id"].GetInt());
+            bnt->addTouchEventListener(this, toucheventselector(WorldCup::onChat));
+            //lv->pushBackCustomItem(ly);
+            //添加 比赛id 对应的 item 映射关系
+            dict->setObject(ly, c["id"].GetInt());
+            lv->insertCustomItem(ly, ordInd++);
+        }
+        
     }
 }
 
@@ -258,12 +572,18 @@ void WorldCup::onChat(cocos2d::CCObject *obj, TouchEventType tt){
         {
             Button *bnt = static_cast<Button*>(obj);
             int mid = bnt->getTag();
-            rapidjson::Document &d = Logic::getInstance()->d;
-            const rapidjson::Value &b = d["matches"];
+            rapidjson::Document *d = Logic::getInstance()->d;
+            const rapidjson::Value &b = (*d)["data"];
             //const rapidjson::Value &c = b[mid];
             
-            Logic::getInstance()->matchInfo = &b[mid];
-            
+            int realid = 0;
+            for (int i = 0; i < b.Size(); i++) {
+                if (b[i]["id"].GetInt() == mid) {
+                    realid = i;
+                    break;
+                }
+            }
+            Logic::getInstance()->matchInfo = &b[realid];
             CCDirector::sharedDirector()->pushScene(ChatView::scene());
             
             

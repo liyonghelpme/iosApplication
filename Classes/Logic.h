@@ -23,7 +23,16 @@ public:
     static Logic *getInstance();
     Logic();
     void initMatchInfo();
+    
+    //获取旧的比赛信息
+    bool fetchOldMatchInfo();
+    //获取新的比赛信息
+    bool fetchNewMatchInfo();
+    
+    
     void initChatInfo();
+    
+    
     
     int getUID();
     void setUID(int i);
@@ -33,7 +42,7 @@ public:
     
     bool initMatchYet;
     bool requestYet;
-    rapidjson::Document d;
+    rapidjson::Document *d;
     
     
     
@@ -53,6 +62,13 @@ public:
     bool  chatInfoYet;
     bool initChatYet;
     rapidjson::Document chatD;
+    void clearTestNum(){
+        testNum = 0;
+    }
+    
+    //新获取的 数据的开始和结束索引
+    int startInd;
+    int endInd;
 private:
     int vid;
     //本地缓存的图像ID 可以暂时不保存到本地文件系统里面 保存在聊天室里面即可
@@ -67,7 +83,21 @@ private:
     void initMatchOver(bool isSuc, string s, void *);
     void initChatOver(bool isSuc, string s, void *);
     
+    
+    void initOldMatchOver(bool isSuc, string s, void *);
+    void initNewMatchOver(bool isSuc, string s, void *);
+    
     //尝试获得比赛信息
     int testNum;
+    bool inRequest;
+    
+    
+    bool realFetchNewMatch();
+    bool realFetchOldMatch();
+    
+    
+    bool noOld;
+    bool noNew;
+    
 };
 #endif /* defined(__TestCpp__Logic__) */
