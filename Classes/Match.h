@@ -35,6 +35,7 @@ public:
     bool getMatches(long long startTime, long long endTime);
     void getMatchById(int tid);
     
+    
     MatchService();
     
     static MatchService *getInstance();
@@ -42,11 +43,11 @@ public:
     
     rapidjson::Document *d;
     bool initMatchYet;
-    
+    bool requestYet;
 private:
     void initMatchOver(bool isSuc, string s, void *param);
     
-    bool requestYet, searchYet;
+    bool searchYet;
     int testNum;
     double firstDay, lastDay, dayRange;
     

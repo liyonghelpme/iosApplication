@@ -11,6 +11,9 @@
 
 #include <iostream>
 #include <string.h>
+#include "cocos2d.h"
+#include "HttpModel.h"
+
 using namespace std;
 class Channel {
 public:
@@ -18,8 +21,14 @@ public:
     string serHost;
     string serPort;
     
-    void sendMessage();
-    void onReceiveMessage();
 };
 
+class ChannelService : public CCObject {
+public:
+    static ChannelService* getInstance();
+    
+    void sendMessage();
+    void onReceiveMessage();
+
+};
 #endif /* defined(__TestCpp__Channel__) */

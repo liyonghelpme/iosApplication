@@ -127,6 +127,8 @@ bool WorldCup::init(){
 void WorldCup::onScroll(cocos2d::CCObject *obj, ScrollviewEventType st){
     CCLog("scroll event %d", st);
     switch (st) {
+        //取消该功能
+        /*
         //放手后回到顶部开始
         case cocos2d::ui::SCROLLVIEW_EVENT_SCROLL_TO_TOP:
         {
@@ -157,6 +159,7 @@ void WorldCup::onScroll(cocos2d::CCObject *obj, ScrollviewEventType st){
             }
         }
             break;
+         */
         default:
             break;
     }
@@ -314,9 +317,9 @@ void WorldCup::update(float diff){
         */
         if (MatchService::getInstance()->initMatchYet) {
             showYet = true;
-            inUpdateData = false;
+            //inUpdateData = false;
             
-            rapidjson::Document *d = Logic::getInstance()->d;
+            rapidjson::Document *d = MatchService::getInstance()->d;
             //const rapidjson::Value &b = d["matches"];
             
             const rapidjson::Value &b = (*d)["data"];
@@ -365,23 +368,7 @@ void WorldCup::update(float diff){
                     lv->pushBackCustomItem(pc->clone());
                 }
                 
-                /*
-                 if (d.compare(date) != 0) {
-                 date = d;
-                 string fd = c["week"].GetString()+emp+date;
-                 dlab->setText(fd);
-                 
-                 lv->pushBackCustomItem(pc->clone());
-                 
-                 
-                 
-                 //同一天
-                 }else {
-                 //dlab->setText(date);
-                 //lv->pushBackCustomItem(pc->clone());
-                 
-                 }
-                 */
+                
                 //添加比赛信息
                 sprintf(minfo, "%.2d:%.2d", hour, min);
                 
@@ -432,7 +419,7 @@ void WorldCup::update(float diff){
             }
 
         }
-        
+        /*
         if (Logic::getInstance()->initMatchYet) {
             showYet = true;
             inUpdateData = false;
@@ -486,23 +473,7 @@ void WorldCup::update(float diff){
                     lv->pushBackCustomItem(pc->clone());
                 }
                 
-                /*
-                if (d.compare(date) != 0) {
-                    date = d;
-                    string fd = c["week"].GetString()+emp+date;
-                    dlab->setText(fd);
-                    
-                    lv->pushBackCustomItem(pc->clone());
-                    
                 
-                    
-                    //同一天
-                }else {
-                    //dlab->setText(date);
-                    //lv->pushBackCustomItem(pc->clone());
-                    
-                }
-                */
                 //添加比赛信息
                 sprintf(minfo, "%.2d:%.2d", hour, min);
                 
@@ -551,8 +522,10 @@ void WorldCup::update(float diff){
                 lv->pushBackCustomItem(ly);
                 
             }
+         
             
         }
+         */
     }
     
     //正在等待网络更新比赛数据 向上 向下

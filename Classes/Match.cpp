@@ -18,11 +18,12 @@ MatchService::MatchService()
 : requestYet(false)
 , testNum(0)
 , searchYet(false)
-, dayRange(30)
+, dayRange(100)
 , initMatchYet(false)
 {
     d = new rapidjson::Document();
 }
+
 
 bool MatchService::getMatches(long long startTime, long long endTime) {
     if (requestYet) {
