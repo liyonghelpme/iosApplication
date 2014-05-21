@@ -274,13 +274,16 @@ void ChatView::onBack(cocos2d::CCObject *obj, TouchEventType tt){
             std::map<string, string> postData;
             char buf[256];
             sprintf(buf, "%d", Logic::getInstance()->getUID());
-            postData["uid"] = buf;
-            sprintf(buf, "%d", Logic::getInstance()->getCID());
-            postData["cid"] = buf;
+            postData["userid"] = buf;
+            
+            //sprintf(buf, "%d", Logic::getInstance()->getCID());
+            //postData["cid"] = buf;
             
             //postData["uid"] = Logic::getInstance()->getUID();
             //postData["cid"] = Logic::getInstance()->getCID();
-            hm->addRequest("exitChannel", "POST", postData, NULL, NULL, NULL);
+            
+            sprintf(buf, "match/%d", Logic::getInstance()->getCID());
+            hm->addRequest(buf, "PUT", postData, NULL, NULL, NULL);
         }
             
             
@@ -682,10 +685,18 @@ void ChatView::update(float diff){
         std::map<string, string> postData;
         char buf[256];
         sprintf(buf, "%d", Logic::getInstance()->getUID());
-        postData["uid"] = buf;
-        sprintf(buf, "%d", Logic::getInstance()->getCID());
-        postData["cid"] = buf;
-        hm->addRequest("enterChannel", "POST", postData, this, MYHTTP_SEL(ChatView::onEnterChat), NULL);
+        postData["userid"] = buf;
+        
+        //sprintf(buf, "%d", Logic::getInstance()->getCID());
+        //postData["cid"] = buf;
+        
+        
+        //hm->addRequest("enterChannel", "POST", postData, this, MYHTTP_SEL(ChatView::onEnterChat), NULL);
+        //char buf[256];
+        sprintf(buf, "match/%d", Logic::getInstance()->getCID());
+        
+        hm->addRequest(buf, "POST", postData, this, MYHTTP_SEL(ChatView::onEnterChat), NULL);
+        
     }
     //打开过图片选择 并且 确认 获取图片 数据了
     if (selectImgYet && checkGetYet()) {

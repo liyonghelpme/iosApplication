@@ -23,8 +23,8 @@ HttpModel *HttpModel::getInstance(){
     return s_http;
 }
 HttpModel::HttpModel(){
-    baseUrl = "http://localhost:5000/";
-    //baseUrl = "http://172.17.0.145:91/";
+    //baseUrl = "http://localhost:5000/";
+    baseUrl = "http://172.17.0.145:91/";
 }
 struct TempData {
     CCObject *object;
@@ -58,7 +58,9 @@ void HttpModel::addRequest(string url, string method, std::map<string, string> p
     
     if (method == "POST") {
         request->setRequestType(CCHttpRequest::kHttpPost);
-    } else {
+    } else if (method == "PUT") {
+        request->setRequestType(CCHttpRequest::kHttpPut);
+    } else if(method == "GET"){
         request->setRequestType(CCHttpRequest::kHttpGet);
     }
     
@@ -83,7 +85,7 @@ void HttpModel::addRequest(string url, string method, std::map<string, string> p
     }
     CCLog("post data is %s", pd.c_str());
     
-    if (method == "POST") {
+    if (method == "POST" || method == "PUT") {
         request->setUrl((baseUrl+url).c_str());
         request->setRequestData(pd.c_str(), pd.size());
     }else {
