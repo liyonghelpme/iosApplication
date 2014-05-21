@@ -50,6 +50,12 @@ private:
     void onEnterChat(bool isSuc, std::string s, void *);
     
     
+    
+
+    void updateEnter(float);
+    float lastUpdateTime;
+    
+    
     //listView 的两个事件不是同时可用的 有项目的时候这个可用
     void onBackground(CCObject*, ListViewEventType);
     //没有项目的时候 该事件可用

@@ -26,6 +26,7 @@ public:
 private:
     void onReg(CCObject *, TouchEventType);
     void registerOver(bool suc, std::string s, void *param);
+    void onBackground(CCObject*, TouchEventType);
     
     bool inReg;
     TextField *phonenum;

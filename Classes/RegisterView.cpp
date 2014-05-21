@@ -11,6 +11,7 @@
 #include "FinishReg.h"
 #include "Logic.h"
 #include "Md5.h"
+#include "User.h"
 
 CCScene *RegisterView::scene(){
     CCScene *scene = CCScene::create();
@@ -41,6 +42,11 @@ bool RegisterView::init() {
     lay->addWidget(w);
     w->setSize(size);
 
+    
+    Layout *pan3 = static_cast<Layout*>(UIHelper::seekWidgetByName(w, "Panel_3"));
+    pan3->addTouchEventListener(this, toucheventselector(RegisterView::onBackground));
+    
+    
     Button *reg = static_cast<Button*>(UIHelper::seekWidgetByName(w, "register"));
     reg->addTouchEventListener(this, toucheventselector(RegisterView::onReg));
     
@@ -53,6 +59,36 @@ bool RegisterView::init() {
     
     return true;
 }
+
+void RegisterView::onBackground(cocos2d::CCObject *obj, TouchEventType tt){
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            phonenum->closeIME();
+            password->closeIME();
+            password1->closeIME();
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_MOVED:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_ENDED:
+        {
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_CANCELED:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
+}
+
 
 void RegisterView::onReg(cocos2d::CCObject *obj, TouchEventType tt){
     switch (tt) {
@@ -96,6 +132,8 @@ void RegisterView::onReg(cocos2d::CCObject *obj, TouchEventType tt){
             
             
             inReg = true;
+            
+            /*
             HttpModel *hm = HttpModel::getInstance();
             std::map<string, string>pd;
             pd["loginName"] = pn;
@@ -103,7 +141,9 @@ void RegisterView::onReg(cocos2d::CCObject *obj, TouchEventType tt){
             
             //pd["password"] =
             hm->addRequest("user/register", "POST", pd, this, MYHTTP_SEL(RegisterView::registerOver), NULL);
+            */
             
+            User::getInstance()->registerUser(pn, p1, "", "", "", this, MYHTTP_SEL(RegisterView::registerOver));
         }
             break;
         case cocos2d::ui::TOUCH_EVENT_CANCELED:

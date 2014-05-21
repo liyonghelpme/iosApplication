@@ -12,6 +12,7 @@
 #include "Logic.h"
 #include "WorldCup.h"
 #include "Md5.h"
+#include "User.h"
 
 
 CCScene *LoginView::scene(){
@@ -50,6 +51,12 @@ bool LoginView::init(){
     
     login = static_cast<Button*>(UIHelper::seekWidgetByName(w, "login"));
     login->addTouchEventListener(this, toucheventselector(LoginView::onLogin));
+    //不输入不允许登录的
+    //login->setTouchEnabled(false);
+    
+    Layout *backp = static_cast<Layout*>(UIHelper::seekWidgetByName(w, "Panel_3"));
+    backp->addTouchEventListener(this, toucheventselector(LoginView::onBackground));
+    
     
     reg = static_cast<Button*>(UIHelper::seekWidgetByName(w, "register"));
     reg->addTouchEventListener(this, toucheventselector(LoginView::onReg));
@@ -72,6 +79,34 @@ bool LoginView::init(){
     
     return true;
     
+}
+void LoginView::onBackground(cocos2d::CCObject *obj, TouchEventType tt){
+    switch (tt) {
+        case cocos2d::ui::TOUCH_EVENT_BEGAN:
+        {
+            phoneNum->closeIME();
+            password->closeIME();
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_MOVED:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TOUCH_EVENT_ENDED:
+        {
+            
+        }
+            
+            break;
+        case cocos2d::ui::TOUCH_EVENT_CANCELED:
+        {
+            
+        }
+            break;
+        default:
+            break;
+    }
 }
 void LoginView::onPassword(CCObject *obj, TextFiledEventType tt) {
     switch (tt) {
@@ -148,6 +183,14 @@ void LoginView::onPhonenum(CCObject *obj, TextFiledEventType tt){
         }
             break;
         case cocos2d::ui::TEXTFIELD_EVENT_INSERT_TEXT:
+        {
+            
+        }
+            break;
+        case cocos2d::ui::TEXTFIELD_EVENT_DELETE_BACKWARD:
+        {
+            
+        }
             break;
         default:
             break;
@@ -188,11 +231,16 @@ void LoginView::onLogin(CCObject *obj, TouchEventType tt){
             
             
             inLogin = true;
+            
+            User::getInstance()->login(ln, pw, this, MYHTTP_SEL(LoginView::loginOver));
+            
+            /*
             HttpModel *hm = HttpModel::getInstance();
             std::map<string, string>pd;
             pd["loginName"] = ln;
             pd["password"] = md5(pw);
             hm->addRequest("user/login", "POST", pd, this, MYHTTP_SEL(LoginView::loginOver), NULL);
+             */
         }
             
             break;
@@ -215,6 +263,7 @@ void LoginView::loginOver(bool suc, std::string s, void *param) {
     d.Parse<0>(s.c_str());
     inLogin = false;
     if(d["state"].GetInt() == 0) {
+        CCLog("error infomation %s %x", d["err"].GetString(), error);
         error->setEnabled(true);
         error->runAction(CCSequence::create(CCScaleTo::create(0.1, 1.2, 1.2), CCScaleTo::create(0.1, 1, 1), NULL));
         error->setText(d["err"].GetString());

@@ -97,23 +97,36 @@ void ChatInfo::update(float dt){
         } else if (Logic::getInstance()->initChatYet){
             getYet = true;
             rapidjson::Document &d = Logic::getInstance()->chatD;
-            rapidjson::Value &b = d["channel"];
+            rapidjson::Value &b = d["data"];
             Layout *rc;
-            Button *b1, *b2, *b3;
+            //Button *b1, *b2, *b3;
+            Layout *l1, *l2, *l3;
             for (int i =0; i < b.Size(); i++) {
                 if (i%3 == 0) {
                     rc = (Layout*)row->clone();
                     rc->setEnabled(true);
                     lv->pushBackCustomItem(rc);
-                    b1 = static_cast<Button*>(UIHelper::seekWidgetByName(rc, "Button_7"));
-                    b2 = static_cast<Button*>(UIHelper::seekWidgetByName(rc, "Button_9"));
-                    b3 = static_cast<Button*>(UIHelper::seekWidgetByName(rc, "Button_10"));
-                    b2->setEnabled(false);
-                    b3->setEnabled(false);
+                    l1 = static_cast<Layout*>(UIHelper::seekWidgetByName(rc, "p1"));
+                    l2 = static_cast<Layout*>(UIHelper::seekWidgetByName(rc, "p2"));
+                    l3 = static_cast<Layout*>(UIHelper::seekWidgetByName(rc, "p3"));
+                    
+                    Label *name = static_cast<Label*>(UIHelper::seekWidgetByName(l1, "name1"));
+                    name->setText(b[i]["real_name"].GetString());
+                    l2->setEnabled(false);
+                    l3->setEnabled(false);
+                    
+                    //b2->setEnabled(false);
+                    //b3->setEnabled(false);
                 } else if(i % 3 == 1) {
-                    b2->setEnabled(true);
+                    //b2->setEnabled(true);
+                    l2->setEnabled(true);
+                    Label *name = static_cast<Label*>(UIHelper::seekWidgetByName(l2, "name1"));
+                    name->setText(b[i]["real_name"].GetString());
                 }  else {
-                    b3->setEnabled(true);
+                    l3->setEnabled(true);
+                    //b3->setEnabled(true);
+                    Label *name = static_cast<Label*>(UIHelper::seekWidgetByName(l3, "name1"));
+                    name->setText(b[i]["real_name"].GetString());
                 }
             }
             

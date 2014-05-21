@@ -18,7 +18,7 @@ static Logic *s_Logic = NULL;
 Logic::Logic():
 initMatchYet(false)
 , requestYet(false)
-, uid(0)
+, uid(1)
 , vid(1)
 , chatInfoYet(false)
 , initChatYet(false)
@@ -28,7 +28,7 @@ initMatchYet(false)
 , inRequest(false)
 , noOld(false)
 , noNew(false)
-
+, dayRange(30.0)
 {
     d = new rapidjson::Document();
 }
@@ -61,10 +61,10 @@ bool Logic::realFetchNewMatch(){
     std::map<string, string> postData;
     double aday, bday;
     aday = lastDay;
-    bday = lastDay+24*3600*7*1000;
+    bday = lastDay+24*3600*dayRange*1000;
     lastDay = bday;
     
-    
+    CCLog("fetch new match %llf %llf", aday, bday);
     char t1[512];
     sprintf(t1, "match/%lld/%lld", (long long)aday, (long long)bday);
     
@@ -90,7 +90,7 @@ bool Logic::realFetchOldMatch(){
     //lastDay = firstDay;
     
     double aday, bday;
-    aday = firstDay-24*3600*7*1000;
+    aday = firstDay-24*3600*dayRange*1000;
     bday = firstDay;
     firstDay = aday;
     
@@ -265,7 +265,7 @@ void Logic::initMatchInfo(){
         
         CCLog("today time %ld %lf", td, today);
         
-        tomorrow = today+24*3600*7;
+        tomorrow = today+24*3600*dayRange;
         today *= 1000;
         tomorrow *= 1000;
         firstDay = today;
@@ -274,7 +274,7 @@ void Logic::initMatchInfo(){
         //向后推迟7天
         //firstDay = lastDay;
         today = lastDay;
-        tomorrow = lastDay+24*3600*7*1000;
+        tomorrow = lastDay+24*3600*dayRange*1000;
         lastDay = tomorrow;
         
         //lastDay += 24*3600*7*1000;
@@ -301,11 +301,15 @@ void Logic::initChatInfo() {
     //}else {
         cid = (*matchInfo)["id"].GetInt();
     //}
-    char v[128];
-    sprintf(v, "%d", cid);
-    postData["cid"] = v;
-    hm->addRequest("getChatInfo", "GET", postData, this, MYHTTP_SEL(Logic::initChatOver), NULL);
+    char buf[128];
+    //sprintf(v, "%d", cid);
+    //postData["cid"] = v;
+    
+    sprintf(buf, "match/%d/user", cid);
+    //hm->addRequest("getChatInfo", "GET", postData, this, MYHTTP_SEL(Logic::initChatOver), NULL);
+    hm->addRequest(buf, "GET", postData, this, MYHTTP_SEL(Logic::initChatOver), NULL);
 }
+
 void Logic::initChatOver(bool isSuc, string s, void *param){
     initChatYet = true;
     if (isSuc) {

@@ -99,5 +99,9 @@ private:
     bool noOld;
     bool noNew;
     
+    
+    
+    double dayRange;
+    
 };
 #endif /* defined(__TestCpp__Logic__) */

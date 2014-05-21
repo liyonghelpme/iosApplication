@@ -46,6 +46,7 @@ private:
     void onPhonenum(CCObject*, TextFiledEventType);
     void onPassword(CCObject*, TextFiledEventType);
     void loginOver(bool, std::string, void*);
+    void onBackground(CCObject *, TouchEventType);
     
     Widget *w;
     CCSize ksize;

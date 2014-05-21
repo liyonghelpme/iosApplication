@@ -11,9 +11,14 @@
 
 #include <iostream>
 #include <string.h>
+#include "cocos2d.h"
+#include "HttpModel.h"
+
 using namespace std;
-class User{
+class User : public cocos2d::CCObject{
 public:
+    static User *getInstance();
+    
     int uid;
     string loginName;
     string password;
@@ -22,12 +27,18 @@ public:
     string bio;
     long long registerTime;
     
-    void login(string loginName, string password);
-    void registerUser(string loginName, string password, string realName, string phoneNum, string referencePhoneNumber);
+    
+    void login(string loginName, string password, CCObject *, MyHttpResp rp);
+    
+    void registerUser(string loginName, string password, string realName, string phoneNum, string referencePhoneNumber, CCObject*, MyHttpResp rp);
     void saveProfile();
     void changePassword();
     void confirmReference();
     
+    
+    User();
+private:
+    bool loginOk;
 };
 
 #endif /* defined(__TestCpp__User__) */

@@ -43,6 +43,7 @@ bool ChatView::init(){
     //vid = 0;
     selectImgYet = false;
     enterChatYet = false;
+    lastUpdateTime = 0;
     
     
     CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
@@ -66,22 +67,54 @@ bool ChatView::init(){
     const rapidjson::Value* minf = Logic::getInstance()->matchInfo;
     
     Label *title = static_cast<Label*>(UIHelper::seekWidgetByName(w, "title"));
-    if (!DEBUG) {
-        string tname = (*minf)["name1"].GetString();
-        tname += "VS";
-        tname += (*minf)["name2"].GetString();
-        title->setText(tname);
-        
+    //if (!DEBUG) {
+    
+    string tname = (*minf)["host_name"].GetString();
+    tname += "VS";
+    tname += (*minf)["guest_name"].GetString();
+    title->setText(tname);
+    
+    bool rn = (*minf)["result"].IsNull();
+    if (rn) {
         Label *slab = static_cast<Label*>(UIHelper::seekWidgetByName(w, "score"));
-        string sc = "比分 ";
+        string sc = "比分0:0";
+        /*
         sc += (*minf)["score1"].GetInt();
         sc += ":";
         sc += (*minf)["score2"].GetInt();
+        */
         slab->setText(sc);
-        
+    } else {
+        string res = (*minf)["result"].GetString();
+        /*
+        std::istringstream ss(res);
+        std::string token;
+        vector<string> sc;
+        while (std::getline(ss, token, ':')) {
+            sc.push_back(token);
+        }
+        */
+        Label *slab = static_cast<Label*>(UIHelper::seekWidgetByName(w, "score"));
+        string sc = "比分 ";
+        sc += res;
+        /*
+        sc += (*minf)["score1"].GetInt();
+        sc += ":";
+        sc += (*minf)["score2"].GetInt();
+        */
+        slab->setText(sc);
     }
     
+    /*
+    Label *slab = static_cast<Label*>(UIHelper::seekWidgetByName(w, "score"));
+    string sc = "比分 ";
+    sc += (*minf)["score1"].GetInt();
+    sc += ":";
+    sc += (*minf)["score2"].GetInt();
+    slab->setText(sc);
+    */
     
+    //}
     
     
     
@@ -677,9 +710,10 @@ void ChatView::onEnterChat(bool isSuc, string s, void *param){
     CCLog("enter Chat suc");
 }
 
-
-void ChatView::update(float diff){
+void ChatView::updateEnter(float diff){
+    //更新服务器上面 的用户在线状态
     if (!enterChatYet) {
+        lastUpdateTime = 60;
         enterChatYet = true;
         HttpModel *hm = HttpModel::getInstance();
         std::map<string, string> postData;
@@ -696,8 +730,19 @@ void ChatView::update(float diff){
         sprintf(buf, "match/%d", Logic::getInstance()->getCID());
         
         hm->addRequest(buf, "POST", postData, this, MYHTTP_SEL(ChatView::onEnterChat), NULL);
-        
+    } else {
+        //更新数据
+        lastUpdateTime -= diff;
+        if (lastUpdateTime <= 0) {
+            enterChatYet = false;
+        }
     }
+}
+
+void ChatView::update(float diff){
+    updateEnter(diff);
+    
+    
     //打开过图片选择 并且 确认 获取图片 数据了
     if (selectImgYet && checkGetYet()) {
         selectImgYet = false;

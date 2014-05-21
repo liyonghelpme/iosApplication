@@ -11,9 +11,12 @@
 
 #include <iostream>
 #include <string.h>
+#include "cocos2d.h"
+#include "HttpModel.h"
+
 using namespace std;
 
-class Match{
+class Match : public CCObject{
 public:
     int mid;
     string host;
@@ -23,9 +26,35 @@ public:
     long long startTime;
     long long endTime;
     
-    void getMatches(long long startTime, long long endTime);
-    void getMatchById(int tid);
     
 };
+
+
+class MatchService : public CCObject {
+public:
+    bool getMatches(long long startTime, long long endTime);
+    void getMatchById(int tid);
+    
+    MatchService();
+    
+    static MatchService *getInstance();
+    
+    
+    rapidjson::Document *d;
+    bool initMatchYet;
+    
+private:
+    void initMatchOver(bool isSuc, string s, void *param);
+    
+    bool requestYet, searchYet;
+    int testNum;
+    double firstDay, lastDay, dayRange;
+    
+    
+    void realRequestMatch();
+};
+
+
+
 
 #endif /* defined(__TestCpp__Match__) */
