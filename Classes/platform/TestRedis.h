@@ -18,6 +18,8 @@
     NSMutableArray *chatInfo;
     //bool connectYet;
     bool connectSuc;
+    int subchannelId;
+    NSString *channelName;
 }
 -(id) init;
 -(void) connect;

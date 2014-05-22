@@ -23,11 +23,13 @@ HttpModel *HttpModel::getInstance(){
     return s_http;
 }
 HttpModel::HttpModel(){
-    baseUrl = "http://localhost:5000/";
+    //baseUrl = "http://localhost:5000/";
     
     
     //baseUrl = "http://172.17.0.145:91/";
     
+    baseUrl = "http://172.17.0.45:5000/";
+    baseRedisHost = "172.17.0.45";
 }
 struct TempData {
     CCObject *object;
@@ -71,6 +73,11 @@ void HttpModel::addRequest(string url, string method, std::map<string, string> p
     request->setTag("test request");
     TempData *td = new TempData();
     td->object = object;
+    //请求对象之前先retain一下
+    if (object != NULL) {
+        object->retain();
+    }
+    
     td->psel = psel;
     td->param = param;
     request->setUserData(td);
@@ -103,18 +110,30 @@ void HttpModel::addRequest(string url, string method, std::map<string, string> p
 }
 //返回一个 json 对象
 void HttpModel::handleHttp(CCHttpClient *client, CCHttpResponse *resp){
+    TempData *td = (TempData*)resp->getHttpRequest()->getUserData();
+    CCObject *obj = td->object;
     if (!resp) {
+        if (obj != NULL) {
+            obj->release();
+        }
+        delete td;
         return;
     }
+    
     if (0 != strlen(resp->getHttpRequest()->getTag())) {
         CCLog("%s finish", resp->getHttpRequest()->getTag());
     }
+    
     int statusCode = resp->getResponseCode();
     char statusString[64] = {};
     sprintf(statusString, "HTTP Status Code: %d, tag = %s", statusCode, resp->getHttpRequest()->getTag());
     if(!resp->isSucceed()){
         CCLog("response failed");
         CCLog("error buffer %s", resp->getErrorBuffer());
+        if (obj != NULL) {
+            obj->release();
+        }
+        delete td;
         return;
     }
     
@@ -130,12 +149,13 @@ void HttpModel::handleHttp(CCHttpClient *client, CCHttpResponse *resp){
     d.Parse<0>(ch.c_str());
     printf("name is %s\n", d["loginName"].GetString());
     */
-    TempData *td = (TempData*)resp->getHttpRequest()->getUserData();
+    
     
     if (td->object != NULL) {
         MyHttpResp cb = td->psel;
         //cb();
         ((*(td->object)).*cb)(true, ch, td->param);
+        obj->release();
     }
     
     //(td->object->(*cb))(true, d, td->param);

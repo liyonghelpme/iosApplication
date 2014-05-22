@@ -30,8 +30,12 @@ initMatchYet(false)
 , noNew(false)
 , dayRange(30.0)
 {
+    srand(time(NULL));
+    uid = rand()%1000;
     d = new rapidjson::Document();
+    flagId = rand()%32+1;
 }
+
 int Logic::getImgId(){
     return imgId++;
 }
@@ -357,4 +361,12 @@ int Logic::getCID() {
         return (*matchInfo)["id"].GetInt();
     }
     return 0;
+}
+
+int Logic::getSenderId(){
+    return uid;
+    
+    //char buf[256];
+    //sprintf(buf, "%d", uid);
+    //return string(buf);
 }

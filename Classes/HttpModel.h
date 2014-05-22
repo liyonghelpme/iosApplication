@@ -34,6 +34,8 @@ public:
     static HttpModel *getInstance();
     
     std::string baseUrl;
+    std::string baseRedisHost;
+    
     //std::vector<Request> requestList;
     HttpModel();
     

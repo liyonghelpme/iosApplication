@@ -69,7 +69,11 @@ public:
     //新获取的 数据的开始和结束索引
     int startInd;
     int endInd;
+    
+    int getSenderId();
+    int getFlagId();
 private:
+    int flagId;
     int vid;
     //本地缓存的图像ID 可以暂时不保存到本地文件系统里面 保存在聊天室里面即可
     int imgId;

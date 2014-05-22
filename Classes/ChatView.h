@@ -32,7 +32,9 @@ public:
         ksize = info.end.size;
         setSizeYet = true;
         
+        pinyinMove();
     }
+    
     virtual void keyboardDidShow(CCIMEKeyboardNotificationInfo& info)    {CC_UNUSED_PARAM(info);}
     virtual void keyboardWillHide(CCIMEKeyboardNotificationInfo& info)   {CC_UNUSED_PARAM(info);}
     virtual void keyboardDidHide(CCIMEKeyboardNotificationInfo& info)    {CC_UNUSED_PARAM(info);}
@@ -49,7 +51,8 @@ private:
     void onAdd(CCObject*, TouchEventType);
     void onEnterChat(bool isSuc, std::string s, void *);
     
-    
+    //出现拼音输入法的时候键盘还得再移动一下
+    void pinyinMove();
     
 
     void updateEnter(float);
@@ -62,9 +65,12 @@ private:
     void onBackgroundTouch(CCObject*, TouchEventType);
     
     void onVoice(CCObject*, TouchEventType);
-    
+    void onMsg(bool isSuc, std::string s, void *param);
+    void sendImg();
     
     void adjustBut();
+    
+    void receiveMsg();
     
     UIPanel *oneWord;
     //UIButton *content;
@@ -100,6 +106,9 @@ private:
     UIImageView *ohead;
     Button *ovoice;
     Button *backbnt;
+    
+    Layout *inRecord;
+    Label *curTime;
 
     void onBack(CCObject*, TouchEventType);
     
@@ -113,6 +122,7 @@ private:
     
     bool enterChatYet;
     
+    int state;
     //int chatImgId;
     
     //float getInputWidth();

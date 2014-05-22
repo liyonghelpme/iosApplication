@@ -37,11 +37,11 @@ bool ConfigView::init(){
     
     
     
-    w = GUIReader::shareReader()->widgetFromJsonFile("gui/ballUI_7.json");
+    w = GUIReader::shareReader()->widgetFromJsonFile("gui/ballUI_7_0.json");
     lay->addWidget(w);
     w->setSize(size);
 
-    Button *back = static_cast<Button*>(UIHelper::seekWidgetByName(w, "Button_4"));
+    Button *back = static_cast<Button*>(UIHelper::seekWidgetByName(w, "back"));
     back->addTouchEventListener(this, toucheventselector(ConfigView::onBack));
     
     return true;

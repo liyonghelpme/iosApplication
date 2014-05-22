@@ -13,7 +13,7 @@
 #include "FriendView.h"
 #include <stdlib.h>
 
-#include "Match.h"
+//#include "Match.h"
 
 using namespace extension;
 using namespace ui;
@@ -61,18 +61,25 @@ bool WorldCup::init(){
     
     
 
-    w = GUIReader::shareReader()->widgetFromJsonFile("gui/ballUI_1.json");
+    //w = GUIReader::shareReader()->widgetFromJsonFile("gui/ballUI_1.json");
+    
+    w = GUIReader::shareReader()->widgetFromJsonFile("gui/ballUI_1_0.json");
     lay->addWidget(w);
     CCSize rs = w->getSize();
     CCLog("rootSize %f %f", rs.width, rs.height);
     w->setSizeType(SIZE_ABSOLUTE);
     w->setSize(size);
     
-    Button *conf = static_cast<Button*>(UIHelper::seekWidgetByName(w, "Button_6"));
+    Button *conf = static_cast<Button*>(UIHelper::seekWidgetByName(w, "selfinfo"));
     conf->addTouchEventListener(this, toucheventselector(WorldCup::onConf));
+    /*
     
+    */
+    /*
     Button *fri = static_cast<Button*>(UIHelper::seekWidgetByName(w, "Button_5"));
     fri->addTouchEventListener(this, toucheventselector(WorldCup::onFri));
+    */
+    
     lv = static_cast<UIListView*>(UIHelper::seekWidgetByName(w, "listView"));
     lv->addEventListenerListView(this, listvieweventselector(WorldCup::onListview));
     lv->addEventListenerScrollView(this, scrollvieweventselector(WorldCup::onScroll));
@@ -90,6 +97,10 @@ bool WorldCup::init(){
     
     UIPanel *cupPanel = static_cast<UIPanel*>(UIHelper::seekWidgetByName(w, "cupPanel"));
     cupPanel->setEnabled(false);
+    //整个Panel 大小一样的 按钮
+    //Button *full = static_cast<Button*>(UIHelper::seekWidgetByName(cupPanel, "full"));
+    //full->setVisible(false);
+    
     
     cp = cupPanel->clone();
     cp->setVisible(true);
@@ -170,7 +181,7 @@ void WorldCup::onListview(cocos2d::CCObject *obj, ListViewEventType lt) {
     switch (lt) {
         case cocos2d::ui::LISTVIEW_ONSELECTEDITEM_START:
         {
-            
+            //CCLog("item number %d %f %f", lv->getItems()->count(), lv->getSize().width, lv->getSize().height);
         }
             break;
         case cocos2d::ui::LISTVIEW_ONSELECTEDITEM_END:
@@ -182,6 +193,7 @@ void WorldCup::onListview(cocos2d::CCObject *obj, ListViewEventType lt) {
             break;
     }
 }
+
 
 void WorldCup::onFri(cocos2d::CCObject *obj, TouchEventType tt){
     switch (tt) {
@@ -304,29 +316,32 @@ void WorldCup::refreshOnlineNum(float diff){
 void WorldCup::update(float diff){
     refreshOnlineNum(diff);
     if (!showYet) {
+        /*
         if (!MatchService::getInstance()->requestYet) {
             MatchService::getInstance()->getMatches(0, 0);
         }
-        /*
+         */
+        
         if (!Logic::getInstance()->requestYet && !inUpdateData) {
             inUpdateData = true;
-            //Logic::getInstance()->initMatchInfo();
-            MatchService::getInstance()->getMatches(0, 0);
+            Logic::getInstance()->initMatchInfo();
+            //MatchService::getInstance()->getMatches(0, 0);
             
         }
-        */
-        if (MatchService::getInstance()->initMatchYet) {
+        
+        if (Logic::getInstance()->initMatchYet) {
             showYet = true;
             //inUpdateData = false;
             
-            rapidjson::Document *d = MatchService::getInstance()->d;
+            //rapidjson::Document *d = MatchService::getInstance()->d;
+            rapidjson::Document *d = Logic::getInstance()->d;
             //const rapidjson::Value &b = d["matches"];
             
             const rapidjson::Value &b = (*d)["data"];
             
             
-            UILabel *title = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "Label_11"));
-            UILabel *online = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "Label_16"));
+            UILabel *title = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "round"));
+            UILabel *online = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "online"));
             UILabel *host = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "host"));
             UILabel *client = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "client"));
             //Button *
@@ -394,23 +409,42 @@ void WorldCup::update(float diff){
                 end_time /= 1000;
                 
                 
+                //Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "Button_12"));
+                Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "chatButton"));
+                CCLog("chat button init");
                 
+                Button *realBnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "realBnt"));
                 
-                Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "Button_12"));
+                Label *state = static_cast<Label*>(UIHelper::seekWidgetByName(ly, "state"));
+                Label *onl = static_cast<Label*>(UIHelper::seekWidgetByName(ly, "online"));
+                
                 if (now >= end_time) {
-                    bnt->setTitleText("已经结束");
+                    onl->setText("完场");
+                    bnt->setTouchEnabled(false);
+                    state->setText("");
+                    //state->setText("已经结束");
+                    //bnt->setTitleText("已经结束");
                 } else if(now >= start_time) {
-                    bnt->setTitleText("立即进入");
+                    state->setText("比赛中");
+                    //bnt->setTitleText("立即进入");
+                
                 } else {
-                    bnt->setTitleText("尚未开始");
+                    state->setText("尚未开始");
+                    //bnt->setTitleText("尚未开始");
                 }
+                
+                
                 
                 
                 ly->setTag(c["id"].GetInt());
                 //use Match Id
                 
-                bnt->setTag(c["id"].GetInt());
-                bnt->addTouchEventListener(this, toucheventselector(WorldCup::onChat));
+                //bnt->setTag();
+                //bnt->addTouchEventListener(this, toucheventselector(WorldCup::onChat));
+                int cid = c["id"].GetInt();
+                
+                realBnt->setTag(cid);
+                realBnt->addTouchEventListener(this, toucheventselector(WorldCup::onChat));
                 //比赛信息对应的 选择Item
                 dict->setObject(ly, c["id"].GetInt());
                 
@@ -528,9 +562,13 @@ void WorldCup::update(float diff){
          */
     }
     
+    //暂时不用这个
     //正在等待网络更新比赛数据 向上 向下
     //网络数据已经获得了
+    
     if (inUpdateData && Logic::getInstance()->initMatchYet) {
+        return;
+        
         inUpdateData = false;
         
         rapidjson::Document *d = Logic::getInstance()->d;
@@ -640,7 +678,8 @@ void WorldCup::update(float diff){
             client->setText(c["guest_name"].GetString());
             
             Layout *ly = static_cast<Layout*>(cp->clone());
-            Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "Button_12"));
+            //Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "Button_12"));
+            Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "full"));
             
             long long end_time = c["end_time"].GetUint64();
             end_time /= 1000;
@@ -666,6 +705,7 @@ void WorldCup::update(float diff){
 }
 
 void WorldCup::onChat(cocos2d::CCObject *obj, TouchEventType tt){
+    CCLog("onChat Button");
     switch (tt) {
         case cocos2d::ui::TOUCH_EVENT_BEGAN:
         {

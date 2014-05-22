@@ -20,12 +20,19 @@
 
 void *receive = NULL;
 void startReceiveRedis(){
+    //释放上一个聊天室的数据 新建一个 新的 接收器
+    if (receive != NULL) {
+        [receive dealloc];
+        receive = NULL;
+    }
+    
     receive = createRedis();
     NSLog([NSString stringWithFormat:@"receive is %@", receive ]);
     
     connectRedis(receive);
     runSubscribe(receive);
 }
+
 
 @implementation TestRedis
 +(id)sharedRedis{
@@ -43,6 +50,8 @@ void startReceiveRedis(){
     
     if (self != nil) {
         self->connectSuc = false;
+        self->subchannelId = -1;
+        self->channelName = [NSString stringWithString:@"match"];
     }
     
     return self;
@@ -95,14 +104,45 @@ void runSubscribe(void *tc){
     if (redis == nil) {
         return;
     }
-    [redis command:@"subscribe chat"];
+    //已经订阅了其它频道 首先 取消订阅接着 再订阅新的频道
+    /*
+    if (self->subchannelId != -1) {
+        [redis command:@"unsubscribe"];
+        self->subchannelId = -1;
+    }
+    */
+    
+    //重新启动新的订阅 关闭旧的订阅 接着 打开新的订阅频道
+    self->subchannelId = Logic::getInstance()->getCID();
+    //NSLog(@"su")
+    NSString *cmd = [NSString stringWithFormat:@"subscribe %@_%d", self->channelName, self->subchannelId];
+    [redis command:cmd];
+    
+    
     while (true) {
         id retVal = [redis getReply];
+        //服务器关闭的消息是什么 格式的 retVal不是这样
         NSLog(@"replay is");
+        if ([retVal class] == [NSArray class]) {
+            NSLog(@"array");
+        }else if([retVal class] == [NSNull class]) {
+            NSLog(@"null retval");
+        }else {
+            NSLog([NSString stringWithFormat:@"%@", [retVal class]]);
+        }
+        NSLog([NSString stringWithFormat:@"%@", retVal ]);
+        
+        //NSLog(typeof(retVal));
         //NSLog([NSString stringWithFormat:@"%@", retVal]);
         
-        @synchronized(chatInfo){
-            [chatInfo addObject:retVal];
+        //连接断开了
+        if (retVal == nil) {
+            NSLog(@"和聊天服务器连接断开了");
+        } else {
+        
+            @synchronized(chatInfo){
+                [chatInfo addObject:retVal];
+            }
         }
         NSLog(@"finish reply");
         
@@ -161,11 +201,14 @@ void *connect(){
 
 //阻塞连接 会block掉整个程序 需要使用 Aynchronized 来做连接 或者 采用多线程 来做连接
 -(void) connect{
-    redis = [ObjCHiredis redis:@"127.0.0.1" on:[NSNumber numberWithInt:6379]];
+    NSString *h = [NSString stringWithCString:HttpModel::getInstance()->baseRedisHost.c_str()];
+    redis = [ObjCHiredis redis:h on:[NSNumber numberWithInt:6379]];
     [redis retain];
     if (redis == nil) {
+        NSLog([NSString stringWithFormat:@"redis connection fail %@", h]);
         self->connectSuc = false;
     }else {
+        NSLog([NSString stringWithFormat:@"redis connection success %@", h]);
         self->connectSuc = true;
     }
     
@@ -191,7 +234,6 @@ void *connect(){
     //const char *fn = [url fileSystemRepresentation];
     NSLog([NSString stringWithFormat:@"filename %s", fn ]);
     //FILE *f = fopen(fn, "r");
-    //fread(<#void *#>, <#size_t#>, <#size_t#>, <#FILE *#>)
     //connection Fail or connection lost
     if (redis == nil) {
         return;
@@ -208,12 +250,17 @@ void *connect(){
     rapidjson::Document::AllocatorType &allocator = d.GetAllocator();
     d.AddMember("type", "voice", allocator);
     d.AddMember("content", [b64 UTF8String], allocator);
-    d.AddMember("sender", Logic::getInstance()->nickname.c_str(), allocator);
+    
+    d.AddMember("sender", Logic::getInstance()->getSenderId(), allocator);
+    d.AddMember("like_team", Logic::getInstance()->getFlagId(), allocator);
+    
     rapidjson::StringBuffer strbuf;
     rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
     d.Accept(writer);
     
-    NSString *cmd = [NSString stringWithFormat:@"publish chat %s", strbuf.GetString()];
+    int mid = Logic::getInstance()->getCID();
+    
+    NSString *cmd = [NSString stringWithFormat:@"publish %@_%d %s", self->channelName,  mid, strbuf.GetString()];
     NSLog(@"send cmd");
     //NSLog(cmd);
     NSLog([NSString stringWithFormat:@"%d cmd %d", (int)b64.length, (int)cmd.length]);
@@ -247,11 +294,16 @@ void *connect(){
         d.AddMember("type", "image", allocator);
         d.AddMember("content", rd.c_str(), allocator);
         
-        d.AddMember("sender", Logic::getInstance()->nickname.c_str(), allocator);
+        d.AddMember("sender", Logic::getInstance()->getSenderId(), allocator);
+        d.AddMember("like_team", Logic::getInstance()->getFlagId(), allocator);
+        
+        
         rapidjson::StringBuffer strbuf;
         rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
         d.Accept(writer);
-        NSString *cmd = [NSString stringWithFormat:@"publish chat %s", strbuf.GetString()];
+        
+        int mid = Logic::getInstance()->getCID();
+        NSString *cmd = [NSString stringWithFormat:@"publish %@_%d %s", self->channelName, mid, strbuf.GetString()];
         NSLog(@"send cmd");
         //NSLog(cmd);
         NSLog([NSString stringWithFormat:@"%d cmd %d", (int)rd.size(), (int)cmd.length]);
@@ -297,14 +349,20 @@ void sendText(std::string text){
         return;
     }
     //NSString *s = [NSString stringWithFormat:@""];
+    Logic *log = Logic::getInstance();
+    int mid = log->getCID();
     
-    NSString *cmd = [NSString stringWithFormat:@"publish chat %s", text];
+    NSLog([NSString stringWithFormat:@"channel is %d  text ", mid]);
+    NSString *cmd = [NSString stringWithFormat:@"publish %@_%d %s", self->channelName, mid, text];
+    NSLog(cmd);
     //NSLog(cmd);
     //[redis retainCount];
     
     NSLog([NSString stringWithFormat:@"%d", [redis retainCount]]);
     id retVal = [redis command:cmd];
     NSLog([NSString stringWithFormat:@"retval %@", retVal]);
+    
+    NSLog(@"send Text suc");
 }
 
 @end

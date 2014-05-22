@@ -36,7 +36,7 @@ bool ChatInfo::init(){
     UILayer *lay = UILayer::create();
     addChild(lay);
 
-    w = GUIReader::shareReader()->widgetFromJsonFile("gui/ballUI_8.json");
+    w = GUIReader::shareReader()->widgetFromJsonFile("gui/ballUI_8_0.json");
     lay->addWidget(w);
     w->setSize(size);
     
@@ -53,7 +53,7 @@ bool ChatInfo::init(){
     }
     */
     
-    Button *back = static_cast<Button*>(UIHelper::seekWidgetByName(w, "Button_4"));
+    Button *back = static_cast<Button*>(UIHelper::seekWidgetByName(w, "back"));
     back->addTouchEventListener(this, toucheventselector(ChatInfo::onBack));
     
     
@@ -101,10 +101,19 @@ void ChatInfo::update(float dt){
             Layout *rc;
             //Button *b1, *b2, *b3;
             Layout *l1, *l2, *l3;
+            Label *online = static_cast<Label*>(UIHelper::seekWidgetByName(w, "online"));
+            char buf[512];
+            sprintf(buf, "在线人数(%d)", b.Size());
+            online->setText(buf);
+            
+            
+            char bf1[256];
             for (int i =0; i < b.Size(); i++) {
                 if (i%3 == 0) {
                     rc = (Layout*)row->clone();
                     rc->setEnabled(true);
+                    rc->setVisible(true);
+                    
                     lv->pushBackCustomItem(rc);
                     l1 = static_cast<Layout*>(UIHelper::seekWidgetByName(rc, "p1"));
                     l2 = static_cast<Layout*>(UIHelper::seekWidgetByName(rc, "p2"));
@@ -115,6 +124,11 @@ void ChatInfo::update(float dt){
                     l2->setEnabled(false);
                     l3->setEnabled(false);
                     
+                    sprintf(bf1, "flags/%d.png", b[i]["like_team"].GetInt());
+                    Button *but = static_cast<Button*>(UIHelper::seekWidgetByName(l1, "Button_7"));
+                    but->loadTextureNormal(bf1);
+                    
+                    
                     //b2->setEnabled(false);
                     //b3->setEnabled(false);
                 } else if(i % 3 == 1) {
@@ -122,11 +136,19 @@ void ChatInfo::update(float dt){
                     l2->setEnabled(true);
                     Label *name = static_cast<Label*>(UIHelper::seekWidgetByName(l2, "name1"));
                     name->setText(b[i]["real_name"].GetString());
+                    
+                    sprintf(bf1, "flags/%d.png", b[i]["like_team"].GetInt());
+                    Button *but = static_cast<Button*>(UIHelper::seekWidgetByName(l2, "Button_7"));
+                    but->loadTextureNormal(bf1);
                 }  else {
                     l3->setEnabled(true);
                     //b3->setEnabled(true);
                     Label *name = static_cast<Label*>(UIHelper::seekWidgetByName(l3, "name1"));
                     name->setText(b[i]["real_name"].GetString());
+                    
+                    sprintf(bf1, "flags/%d.png", b[i]["like_team"].GetInt());
+                    Button *but = static_cast<Button*>(UIHelper::seekWidgetByName(l3, "Button_7"));
+                    but->loadTextureNormal(bf1);
                 }
             }
             
