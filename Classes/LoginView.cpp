@@ -232,7 +232,7 @@ void LoginView::onLogin(CCObject *obj, TouchEventType tt){
             
             inLogin = true;
             
-            User::getInstance()->login(ln, pw, this, MYHTTP_SEL(LoginView::loginOver));
+            //UserService::getInstance()->login(ln, pw, this, MYHTTP_SEL(LoginView::loginOver));
             
             /*
             HttpModel *hm = HttpModel::getInstance();

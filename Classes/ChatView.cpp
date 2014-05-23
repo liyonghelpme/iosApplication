@@ -15,6 +15,8 @@
 #include "Logic.h"
 #include "ChatInfo.h"
 #include "MyBase64.h"
+#include "Channel.h"
+#include "Message.h"
 
 
 CCScene *ChatView::scene(){
@@ -600,22 +602,7 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
             CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
             float lwid = fs.width-114-10-30;
             //调整尺寸
-            /*
-            CCLabelTTF *lt = static_cast<CCLabelTTF*>(lab->getVirtualRenderer());
-            lt->setDimensions(CCSizeMake(lwid, 0));
-            CCSize tsz = lt->getContentSize();
-            */
-            /*
-            testLabel->setString(text.c_str());
-            testLabel->setDimensions(CCSize(lwid, 0));
-            CCSize tsz = testLabel->getContentSize();
-            //only when lab text 长度 > 0
-            CCLog("testLabel size %f %f", tsz.width, tsz.height);
-            lab->setText("");
-            lab->setSize(tsz);
-            lab->setText(text);
             
-            */
             testLabel->setString(text.c_str());
             //first test width
             testLabel->setDimensions(CCSize(0, 0));
@@ -637,42 +624,23 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
             
             CCLog("size is what %f %f %f %f",osz.width, osz.height, tsz.width, tsz.height);
             
-            //CCLog("label max widht %f", lwid);
-            //lab->setSizeType(SIZE_ABSOLUTE);
-            //lab->setTextAreaSize(CCSizeMake(100, fs.height));
-            //lab->ignoreContentAdaptWithSize(false);
-            //lab->setSize(CCSizeMake(lwid, 200));
-            //自动计算高度
-            //lab->setTextAreaSize(CCSizeMake(lwid, 0));
-            
-            
-            //CCSize csz = lab->getContentSize();
-            
-            //CCLog("contentSize %f %f", csz.width, csz.height);
-            
-            //lab->setTextAreaSize(CCSizeMake(100, 768));
-            //如何得到实际的文本高度呢？不仅仅是Size得高度
-            
-            //CCSize fs = CCDirector::sharedDirector()->getVisibleSize();
             CCSize ws = lab2->getSize();
             CCSize hsz = head2->getSize();
             float height = std::max(ws.height, hsz.height);
             height += 20;
-            
-            //voice2->setEnabled(false);
-            //lab2->setEnabled(true);
+   
             
             UIPanel *pan = static_cast<UIPanel*>(twoWord->clone());
+            ImageView *head2 = static_cast<ImageView*>(UIHelper::seekWidgetByName(pan, "head2"));
+            char buf[512];
+            sprintf(buf, "flags/%d.png", Logic::getInstance()->getFlagId());
+            head2->loadTexture(buf);
+            
+            
             pan->setEnabled(true);
             pan->setSize(CCSizeMake(fs.width, height));
             pan->setSizeType(SIZE_ABSOLUTE);
             pan->setVisible(true);
-            /*
-            UIPanel *pan = static_cast<UIPanel*>(oneWord->clone());
-            pan->setEnabled(true);
-            pan->setSize(CCSizeMake(fs.width, height));
-            pan->setSizeType(SIZE_ABSOLUTE);
-            */
             
             lv->pushBackCustomItem(pan);
             
@@ -710,7 +678,9 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
             
             //int olen;
             //
-            sendText(strbuf.GetString());
+            //sendText(strbuf.GetString());
+            ChannelService::getInstance()->channelSendText(strbuf.GetString());
+            
             
             //sendText(odata, olen);
             
@@ -778,6 +748,8 @@ void ChatView::onMsg(bool isSuc, std::string s, void *param) {
             const rapidjson::Value &b = d["data"][i];
             int uid = b["user_id"].GetInt();
             string ty = b["type"].GetString();
+            int flagId = b["like_team"].GetInt();
+            
             unsigned char* content = (unsigned char*)b["content"].GetString();
             if (uid == Logic::getInstance()->getUID()) {
                 continue;
@@ -817,6 +789,13 @@ void ChatView::onMsg(bool isSuc, std::string s, void *param) {
                 height += 20;
                 
                 UIPanel *pan = static_cast<UIPanel*>(oneWord->clone());
+                ImageView *head = static_cast<ImageView*>(UIHelper::seekWidgetByName(pan, "head"));
+                
+                
+                char buf[512];
+                sprintf(buf, "flags/%d.png", flagId);
+                head->loadTexture(buf);
+                
                 pan->setEnabled(true);
                 pan->setSize(CCSizeMake(fs.width, height));
                 pan->setSizeType(SIZE_ABSOLUTE);
@@ -832,13 +811,17 @@ void ChatView::onMsg(bool isSuc, std::string s, void *param) {
 }
 
 
-//网络请求的时候要保存对象 直到请求结束才摧毁对象
+//网络请求的时候要保存对象 直到请求结束才摧毁对象 从redis服务器接收请求
 void ChatView::receiveMsg(){
     //接收该频道的消息
     if (state == 0) {
         state = 1;
-        HttpModel *hm = HttpModel::getInstance();
         int cid = Logic::getInstance()->getCID();
+        MessageService::getInstance()->getHistoryMessage(cid, this, MYHTTP_SEL(ChatView::onMsg));
+        
+        
+        /*
+        HttpModel *hm = HttpModel::getInstance();
         char buf[512];
         long long startTime, endTime;
         
@@ -858,9 +841,14 @@ void ChatView::receiveMsg(){
         std::map<string, string> postData;
         
         hm->addRequest(buf, "GET", postData, this, MYHTTP_SEL(ChatView::onMsg), NULL);
+        */
+        
+    //从redis 服务器接收数据
     }else if (state == 2) {
         if (receive == NULL) {
-            startReceiveRedis();
+            ChannelService::getInstance()->listenChannel();
+            //startReceiveRedis();
+            
             CCLog("receive %x", receive);
         }else {
             std::string channel;
@@ -873,6 +861,7 @@ void ChatView::receiveMsg(){
                 d.Parse<0>(content.c_str());
                 std::string tx = "text";
                 std::string ctype = d["type"].GetString();
+                int flagId = d["like_team"].GetInt();
                 
                 std::string conText;
                 bool isText = false;
@@ -928,6 +917,12 @@ void ChatView::receiveMsg(){
                     pan->setSize(CCSizeMake(fs.width, height));
                     pan->setSizeType(SIZE_ABSOLUTE);
                     pan->setVisible(true);
+                    
+                    char buf[512];
+                    sprintf(buf, "flags/%d.png", flagId);
+                    ImageView *head = static_cast<ImageView*>(UIHelper::seekWidgetByName(pan, "head"));
+                    head->loadTexture(buf);
+                    
                     
                     CCLog("push CutonItem where");
                     lv->pushBackCustomItem(pan);

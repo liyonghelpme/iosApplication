@@ -143,7 +143,7 @@ void RegisterView::onReg(cocos2d::CCObject *obj, TouchEventType tt){
             hm->addRequest("user/register", "POST", pd, this, MYHTTP_SEL(RegisterView::registerOver), NULL);
             */
             
-            User::getInstance()->registerUser(pn, p1, "", "", "", this, MYHTTP_SEL(RegisterView::registerOver));
+            //UserService::getInstance()->registerUser(pn, p1, "", "", "", this, MYHTTP_SEL(RegisterView::registerOver));
         }
             break;
         case cocos2d::ui::TOUCH_EVENT_CANCELED:

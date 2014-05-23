@@ -11,17 +11,37 @@
 
 #include <iostream>
 #include <string.h>
+#include "cocos2d.h"
+#include "cocos-ext.h"
+#include "HttpModel.h"
+#include "Channel.h"
+
 using namespace std;
+using namespace cocos2d;
+using namespace extension;
+using namespace ui;
+
 class Message{
 public:
-    int uid;
+    int mid;
+    int sender;
+    string senderName;
     int mtype;
     string content;
     long long send_time;
+};
+
+class MessageService : public CCObject {
+public:
+    static MessageService *getInstance();
     
-    
-    int getChannel(int channelId);
-    void getHistoryMessage(int cid, long long startTime, long long endTime);
+    //当前聊天的频道
+    Channel *getChannel(int channelId);
+    //获取服务器历史消息
+    //, long long startTime, long long endTime
+    void getHistoryMessage(int cid, CCObject *, MyHttpResp);
+
+private:
     
 };
 

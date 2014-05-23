@@ -17,8 +17,7 @@
 using namespace std;
 class User : public cocos2d::CCObject{
 public:
-    static User *getInstance();
-    
+    //static User *getInstance();
     int uid;
     string loginName;
     string password;
@@ -28,6 +27,19 @@ public:
     long long registerTime;
     
     
+    
+    //User();
+private:
+    bool loginOk;
+};
+
+/*
+class UserService: public CCObject {
+public:
+    static UserService *getInstance();
+    
+    UserService();
+    
     void login(string loginName, string password, CCObject *, MyHttpResp rp);
     
     void registerUser(string loginName, string password, string realName, string phoneNum, string referencePhoneNumber, CCObject*, MyHttpResp rp);
@@ -35,10 +47,9 @@ public:
     void changePassword();
     void confirmReference();
     
-    
-    User();
 private:
-    bool loginOk;
+    
 };
+*/
 
 #endif /* defined(__TestCpp__User__) */

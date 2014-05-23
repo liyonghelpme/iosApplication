@@ -23,12 +23,17 @@ public:
     
 };
 
+//给当前用户所在的频道发送 文本信息  声音信息 和 图片信息
 class ChannelService : public CCObject {
 public:
     static ChannelService* getInstance();
     
-    void sendMessage();
-    void onReceiveMessage();
+    //基于同步方案设计的 消息接收机制
+    //void sendMessage();
+    //void onReceiveMessage();
 
+    void channelSendText(std::string text);
+    //监听当前用户打开的频道
+    void listenChannel();
 };
 #endif /* defined(__TestCpp__Channel__) */

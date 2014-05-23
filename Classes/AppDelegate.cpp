@@ -32,6 +32,10 @@ THE SOFTWARE.
 #include "WorldCup.h"
 #include "ChatView.h"
 #include "LoginView.h"
+#include "TestView.h"
+
+#include "LoginScene.h"
+
 
 
 USING_NS_CC;
@@ -109,12 +113,15 @@ bool AppDelegate::applicationDidFinishLaunching() {
     // create a scene. it's an autorelease object
     //CCScene *pScene = HelloWorld::scene();
     
-    CCScene *pScene = WorldCup::scene();
+    //CCScene *pScene = WorldCup::scene();
+    
+    CCScene *pScene = LoginScene::scene();
     
     //CCScene *pScene = ChatView::scene();
     
     //CCScene *pScene = LoginView::scene();
     
+    //CCScene *pScene = TestView::scene();
     // run
     pDirector->runWithScene(pScene);
 

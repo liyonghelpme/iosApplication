@@ -10,21 +10,20 @@
 #include "HttpModel.h"
 #include "Md5.h"
 
-
-static User *s_su = NULL;
-User *User::getInstance() {
+/*
+static UserService *s_su = NULL;
+UserService *UserService::getInstance() {
     if (s_su == NULL) {
-        s_su = new User();
+        s_su = new UserService();
     }
     return s_su;
 }
-User::User():
-loginOk(false)
+UserService::UserService()
 {
     
 }
 
-void User::login(string loginName, string password, CCObject *obj, MyHttpResp rp){
+void UserService::login(string loginName, string password, CCObject *obj, MyHttpResp rp){
     HttpModel *hm = HttpModel::getInstance();
     std::map<string, string>pd;
     pd["loginName"] = loginName;
@@ -36,7 +35,7 @@ void User::login(string loginName, string password, CCObject *obj, MyHttpResp rp
 
 
 
-void User::registerUser(string loginName, string password, string realName, string phoneNum, string referencePhoneNumber, CCObject*obj, MyHttpResp rp){
+void UserService::registerUser(string loginName, string password, string realName, string phoneNum, string referencePhoneNumber, CCObject*obj, MyHttpResp rp){
     HttpModel *hm = HttpModel::getInstance();
     std::map<string, string>pd;
     pd["loginName"] = loginName;
@@ -46,12 +45,13 @@ void User::registerUser(string loginName, string password, string realName, stri
     hm->addRequest("user/register", "POST", pd, obj, rp, NULL);
 }
 
-void User::saveProfile(){
+void UserService::saveProfile(){
     
 }
-void User::changePassword(){
+void UserService::changePassword(){
     
 }
-void User::confirmReference(){
+void UserService::confirmReference(){
     
 }
+*/

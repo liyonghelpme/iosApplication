@@ -71,7 +71,9 @@ public:
     int endInd;
     
     int getSenderId();
-    int getFlagId();
+    int getFlagId() {
+        return flagId;
+    }
 private:
     int flagId;
     int vid;
