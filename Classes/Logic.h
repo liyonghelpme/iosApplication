@@ -107,19 +107,30 @@ public:
     }
     
     string getGender() {
-        return "男";
+        if (gender == 1) {
+            return "男";
+        }else {
+            return "女";
+        }
     }
     
     string getLocal() {
-        return "珠海";
+        return area;
     }
     /*
     string getTeamName() {
         return "巴西";
     }
      */
+    int fetchInfoState;
+    
+    void fetchInfo();
     
 private:
+    void fetchOver(bool isSuc, string s, void *param);
+    int gender;
+    string area;
+    
     string realName;
     string phoneNumber;
     string bio;

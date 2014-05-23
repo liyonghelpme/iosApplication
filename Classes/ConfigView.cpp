@@ -27,6 +27,7 @@ bool ConfigView::init(){
     {
         return false;
     }
+    getYet = false;
     
     CCSize size = CCDirector::sharedDirector()->getVisibleSize();
     CCLog("winSize %f %f", size.width, size.height);
@@ -45,6 +46,11 @@ bool ConfigView::init(){
     Button *back = static_cast<Button*>(UIHelper::seekWidgetByName(w, "back"));
     back->addTouchEventListener(this, toucheventselector(ConfigView::onBack));
     
+    
+    return true;
+}
+
+void ConfigView::initView() {
     Button *head = static_cast<Button*>(UIHelper::seekWidgetByName(w, "head"));
     char buf[512];
     sprintf(buf, "flags/%d.png", Logic::getInstance()->getFlagId());
@@ -72,9 +78,7 @@ bool ConfigView::init(){
     TextField *local = static_cast<TextField*>(UIHelper::seekWidgetByName(w, "local"));
     local->setTouchEnabled(false);
     local->setText(Logic::getInstance()->getLocal());
-    return true;
 }
-
 
 void ConfigView::onBack(cocos2d::CCObject *obj, TouchEventType tt){
     switch (tt) {
@@ -104,5 +108,14 @@ void ConfigView::onBack(cocos2d::CCObject *obj, TouchEventType tt){
 }
 
 void ConfigView::update(float dt){
+    if (!getYet) {
+        //getYet = true;
+        if (Logic::getInstance()->fetchInfoState == 0) {
+            Logic::getInstance()->fetchInfo();
+        } else if(Logic::getInstance()->fetchInfoState == 2) {
+            getYet = true;
+            initView();
+        }
+    }
     
 }

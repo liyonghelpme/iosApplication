@@ -251,8 +251,7 @@ void RegistScene::registEnd(bool suc, std::string s, void*param)
     if(regData.status == 1){
         CCDirector* pDirector = CCDirector::sharedDirector();
         
-        CCScene* pScene = WorldCup::scene();
-        pDirector->replaceScene(pScene);
+        
         
         //存储数据到Logic里面即可
         /*
@@ -277,7 +276,10 @@ void RegistScene::registEnd(bool suc, std::string s, void*param)
         lg->setRealName(rdata["realName"].GetString());
         lg->setPhoneNumber(rdata["phoneNumber"].GetString());
         */
-        lg->setBio(m_itrsPhoneNum);
+        lg->setBio(m_itrsPhoneNum->getText());
+        
+        CCScene* pScene = WorldCup::scene();
+        pDirector->replaceScene(pScene);
         
     }else{
         CCMessageBox(regData.msg.c_str(), "提示");

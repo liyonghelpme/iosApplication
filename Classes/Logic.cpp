@@ -29,6 +29,8 @@ initMatchYet(false)
 , noOld(false)
 , noNew(false)
 , dayRange(30.0)
+, fetchInfoState(0)
+, gender(0)
 {
     srand(time(NULL));
     uid = rand()%1000;
@@ -369,4 +371,33 @@ int Logic::getSenderId(){
     //char buf[256];
     //sprintf(buf, "%d", uid);
     //return string(buf);
+}
+
+void Logic::fetchInfo() {
+    if (fetchInfoState == 0) {
+        fetchInfoState = 1;
+        HttpModel *hm = HttpModel::getInstance();
+        char buf[256];
+        sprintf(buf, "user/%d", uid);
+        std::map<string, string> postData;
+        hm->addRequest(buf, "GET", postData, this, MYHTTP_SEL(Logic::fetchOver), NULL);
+    }
+}
+
+/*
+ {"state":1,"data":{"id":1,"realName":"wang","phoneNumber":"13678972729","bio":"13678972729","avatar":"abc","confirmTime":null,"registerTime":null,"gender":1,"likeTeam":5,"area":"ccc","state":1}}
+ */
+void Logic::fetchOver(bool isSuc, string s, void *param) {
+    fetchInfoState = 2;
+    if (isSuc) {
+        rapidjson::Document d;
+        d.Parse<0>(s.c_str());
+        const rapidjson::Value &bd = d["data"];
+        realName = bd["realName"].GetString();
+        phoneNumber = bd["phoneNumber"].GetString();
+        bio = bd["bio"].GetString();
+        gender = bd["gender"].GetInt();
+        flagId = bd["likeTeam"].GetInt();
+        area = bd["area"].GetString();
+    }
 }

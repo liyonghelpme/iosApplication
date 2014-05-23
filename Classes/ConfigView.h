@@ -28,10 +28,11 @@ public:
     CREATE_FUNC(ConfigView);
 private:
     void onBack(CCObject *, TouchEventType);
-    
+    void initView();
     
     cocos2d::ui::Widget *w;
     
+    bool getYet;
 };
 
 
