@@ -35,7 +35,7 @@ public:
     
     
     int getUID();
-    void setUID(int i);
+    
     //频道编号
     int getCID();
     
@@ -46,9 +46,7 @@ public:
     
     
     
-    string loginName;
-    string password;
-    string nickname;
+    
     
     void storeData();
     
@@ -74,7 +72,25 @@ public:
     int getFlagId() {
         return flagId;
     }
+    
+    
+    
+    
+    //登录 或者 注册完成后 需要设定的数据
+    void setLoginName(string ln) {
+        loginName = ln;
+    }
+    void setUID(int i);
+    void setNickName(string nk) {
+        nickname = nk;
+    }
+    
 private:
+    
+    string loginName;
+    string password;
+    string nickname;
+    
     int flagId;
     int vid;
     //本地缓存的图像ID 可以暂时不保存到本地文件系统里面 保存在聊天室里面即可

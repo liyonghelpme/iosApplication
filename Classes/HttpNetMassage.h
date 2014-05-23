@@ -16,6 +16,7 @@ using namespace std;
 #define NET_REGIST "user/register"//注册
 
 
+//登录时候 和 注册时候的 消息用于Logic 初始化信息
 
 //消息基本数据结构..供底层使用
 //登陆

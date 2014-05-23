@@ -272,8 +272,8 @@ void LoginView::loginOver(bool suc, std::string s, void *param) {
         Logic::getInstance()->setUID(d["uid"].GetInt());
         Logic *lg = Logic::getInstance();
         
-        lg->loginName = d["udata"]["loginName"].GetString();
-        lg->nickname = d["udata"]["nickname"].GetString();
+        //lg->loginName = d["udata"]["loginName"].GetString();
+        //lg->nickname = d["udata"]["nickname"].GetString();
         
         lg->storeData();
         CCDirector::sharedDirector()->replaceScene(WorldCup::scene());
@@ -320,9 +320,10 @@ void LoginView::update(float diff){
             
         //用户登录过 直接进入应用
         }else {
-            Logic::getInstance()->loginName = uname;
+            
+            //Logic::getInstance()->loginName = uname;
             Logic::getInstance()->setUID(u->getIntegerForKey("uid"));
-            Logic::getInstance()->nickname = u->getStringForKey("nickname");
+            //Logic::getInstance()->nickname = u->getStringForKey("nickname");
             
             CCLog("该用户已经登陆过 进入比赛页面");
             CCDirector::sharedDirector()->replaceScene(WorldCup::scene());

@@ -167,13 +167,14 @@ void FinishReg::registerOver(bool suc, std::string s, void *param) {
     }else {
         //下次不用注册自动登录即可
         string n = name->getStringValue();
-        Logic::getInstance()->nickname = n;
+        //Logic::getInstance()->nickname = n;
         
         
         CCUserDefault *u = CCUserDefault::sharedUserDefault();
-        u->setStringForKey("loginName", Logic::getInstance()->loginName);
-        u->setIntegerForKey("uid", Logic::getInstance()->getUID());
-        u->setStringForKey("nickname", Logic::getInstance()->nickname);
+        
+        //u->setStringForKey("loginName", Logic::getInstance()->loginName);
+        //u->setIntegerForKey("uid", Logic::getInstance()->getUID());
+        //u->setStringForKey("nickname", Logic::getInstance()->nickname);
         
         
         

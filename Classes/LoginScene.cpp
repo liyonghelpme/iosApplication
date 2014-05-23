@@ -9,6 +9,8 @@
 #include "LoginScene.h"
 //#include "md5.h"
 #include "Md5.h"
+#include "Logic.h"
+#include "RegistScene.h"
 
 
 UIWidget* loginWidget;
@@ -119,6 +121,10 @@ void LoginScene::loginEnd(bool suc, std::string s, void*param)
         //保存本地用户名
         CCUserDefault::sharedUserDefault()->setStringForKey("loginName", m_userName->getText());
         CCUserDefault::sharedUserDefault()->flush();
+        
+        
+        Logic::getInstance()->setLoginName(m_userName->getText());
+        
     }else{
     //登陆失败
         CCLog("Login fail!");
@@ -126,6 +132,8 @@ void LoginScene::loginEnd(bool suc, std::string s, void*param)
         //删除本地用户名
         CCUserDefault::sharedUserDefault()->setStringForKey("loginName", "");
         CCUserDefault::sharedUserDefault()->flush();
+        
+        Logic::getInstance()->setLoginName("");
         
         refurbishScene();
     }
@@ -138,8 +146,8 @@ void LoginScene::registerPress(CCObject *pSender,TouchEventType type)
         CCDirector* pDirector = CCDirector::sharedDirector();
         
         //进入注册页面
-        //CCScene* pScene = RegistScene::scene();
-        //pDirector->replaceScene(pScene);
+        CCScene* pScene = RegistScene::scene();
+        pDirector->replaceScene(pScene);
 
 	}
     

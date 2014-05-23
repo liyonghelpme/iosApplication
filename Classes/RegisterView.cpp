@@ -168,8 +168,8 @@ void RegisterView::registerOver(bool suc, std::string s, void *param){
     }else {
         
         string pn = phonenum->getStringValue();
-        Logic::getInstance()->loginName = pn;
-        Logic::getInstance()->setUID(d["uid"].GetInt());
+        //Logic::getInstance()->loginName = pn;
+        //Logic::getInstance()->setUID(d["uid"].GetInt());
         
         CCDirector::sharedDirector()->replaceScene(FinishReg::scene());
     }
