@@ -457,9 +457,8 @@ void WorldCup::showScroll() {
         
         const rapidjson::Value &b = (*d)["data"];
         
-        
-        UILabel *title = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "Label_11"));
-        UILabel *online = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "Label_16"));
+        UILabel *title = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "round"));
+        UILabel *online = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "online"));
         UILabel *host = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "host"));
         UILabel *client = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "client"));
         
@@ -539,10 +538,11 @@ void WorldCup::showScroll() {
             
             Layout *ly = static_cast<Layout*>(cp->clone());
             //Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "Button_12"));
-            Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "full"));
+            //Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "full"));
             
             long long end_time = c["end_time"].GetUint64();
             end_time /= 1000;
+            /*
             if (now >= end_time) {
                 bnt->setTitleText("已经结束");
             } else if(now >= start_time) {
@@ -550,11 +550,42 @@ void WorldCup::showScroll() {
             } else {
                 bnt->setTitleText("尚未开始");
             }
+             */
+            
+            //Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "Button_12"));
+            Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "chatButton"));
+            CCLog("chat button init");
+            
+            Button *realBnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "realBnt"));
+            
+            Label *state = static_cast<Label*>(UIHelper::seekWidgetByName(ly, "state"));
+            Label *onl = static_cast<Label*>(UIHelper::seekWidgetByName(ly, "online"));
+            
+            if (now >= end_time) {
+                onl->setText("完场");
+                bnt->setTouchEnabled(false);
+                state->setText("");
+                //state->setText("已经结束");
+                //bnt->setTitleText("已经结束");
+            } else if(now >= start_time) {
+                state->setText("比赛中");
+                //bnt->setTitleText("立即进入");
+                
+            } else {
+                state->setText("尚未开始");
+                //bnt->setTitleText("尚未开始");
+            }
             
             
-            ly->setTag(c["id"].GetInt());
-            bnt->setTag(c["id"].GetInt());
-            bnt->addTouchEventListener(this, toucheventselector(WorldCup::onChat));
+            int cid = c["id"].GetInt();
+            ly->setTag(cid);
+            
+            //bnt->setTag(c["id"].GetInt());
+            //bnt->addTouchEventListener(this, toucheventselector(WorldCup::onChat));
+            
+            realBnt->setTag(cid);
+            realBnt->addTouchEventListener(this, toucheventselector(WorldCup::onChat));
+            
             //lv->pushBackCustomItem(ly);
             //添加 比赛id 对应的 item 映射关系
             dict->setObject(ly, c["id"].GetInt());

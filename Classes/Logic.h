@@ -84,11 +84,45 @@ public:
     void setNickName(string nk) {
         nickname = nk;
     }
+    string getNickName(){
+        return nickname;
+    }
     void setFlagId(int fd) {
         flagId = fd;
     }
+    void setRealName(string rn) {
+        realName = rn;
+    }
+    void setPhoneNumber(string pn) {
+        phoneNumber = pn;
+    }
+    string getPhoneNumber() {
+        return phoneNumber;
+    }
+    void setBio(string bi){
+        bio = bi;
+    }
+    string getBio(){
+        return bio;
+    }
+    
+    string getGender() {
+        return "男";
+    }
+    
+    string getLocal() {
+        return "珠海";
+    }
+    /*
+    string getTeamName() {
+        return "巴西";
+    }
+     */
     
 private:
+    string realName;
+    string phoneNumber;
+    string bio;
     
     string loginName;
     string password;

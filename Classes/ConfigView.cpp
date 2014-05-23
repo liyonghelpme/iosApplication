@@ -7,6 +7,7 @@
 //
 
 #include "ConfigView.h"
+#include "Logic.h"
 
 CCScene *ConfigView::scene(){
     CCScene *scene = CCScene::create();
@@ -44,6 +45,33 @@ bool ConfigView::init(){
     Button *back = static_cast<Button*>(UIHelper::seekWidgetByName(w, "back"));
     back->addTouchEventListener(this, toucheventselector(ConfigView::onBack));
     
+    Button *head = static_cast<Button*>(UIHelper::seekWidgetByName(w, "head"));
+    char buf[512];
+    sprintf(buf, "flags/%d.png", Logic::getInstance()->getFlagId());
+    head->loadTextureNormal(buf);
+    
+    TextField  *nn = static_cast<TextField*>(UIHelper::seekWidgetByName(w, "nickname"));
+    nn->setTouchEnabled(false);
+    nn->setText(Logic::getInstance()->getNickName());
+    
+    TextField *account = static_cast<TextField*>(UIHelper::seekWidgetByName(w, "account"));
+    account->setTouchEnabled(false);
+    
+    account->setText(Logic::getInstance()->getPhoneNumber());
+    
+    TextField *team = static_cast<TextField*>(UIHelper::seekWidgetByName(w, "team"));
+    team->setTouchEnabled(false);
+    team->setText(Logic::getInstance()->getBio());
+    
+    
+    TextField *gender = static_cast<TextField*>(UIHelper::seekWidgetByName(w, "gender"));
+    gender->setTouchEnabled(false);
+    gender->setText(Logic::getInstance()->getGender());
+    
+    
+    TextField *local = static_cast<TextField*>(UIHelper::seekWidgetByName(w, "local"));
+    local->setTouchEnabled(false);
+    local->setText(Logic::getInstance()->getLocal());
     return true;
 }
 

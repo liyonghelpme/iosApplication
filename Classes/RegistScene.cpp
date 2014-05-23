@@ -8,6 +8,9 @@
 
 #include "RegistScene.h"
 #include "Md5.h"
+#include "WorldCup.h"
+#include "Logic.h"
+
 
 UIButton* m_registBtn;
 UIWidget* addshow;
@@ -211,6 +214,7 @@ void RegistScene::finishPress( CCObject *pSender,TouchEventType type )
 	}
 }
 
+//修改球队头像
 //listview press
 void RegistScene::listviewPress( CCObject *pSender,TouchEventType type )
 {
@@ -246,10 +250,34 @@ void RegistScene::registEnd(bool suc, std::string s, void*param)
     CCLog("net regist %d", regData.status);
     if(regData.status == 1){
         CCDirector* pDirector = CCDirector::sharedDirector();
-        //CCScene* pScene = ChatRoomScene::scene();
-        //pDirector->replaceScene(pScene);
+        
+        CCScene* pScene = WorldCup::scene();
+        pDirector->replaceScene(pScene);
         
         //存储数据到Logic里面即可
+        /*
+        loginName=123456789&password=c4ca4238a0b923820dcc509a6f75849b&passwordconfirm=c4ca4238a0b923820dcc509a6f75849b&referrer=13128513872
+         Cocos2d: finish
+         Cocos2d: test request finish
+        {"state":1,"data":{"id":30}}
+        */
+        //返回的数据
+        
+        rapidjson::Document d;
+        d.Parse<0>(s.c_str());
+        const rapidjson::Value &rdata = d["data"];
+        Logic *lg = Logic::getInstance();
+        //注册的时候 提交的 用户信息 喜欢的球队信息
+        
+        lg->setUID(rdata["id"].GetInt());
+        lg->setLoginName(v_phoneNum);
+        
+        /*
+        lg->setFlagId();
+        lg->setRealName(rdata["realName"].GetString());
+        lg->setPhoneNumber(rdata["phoneNumber"].GetString());
+        */
+        lg->setBio(m_itrsPhoneNum);
         
     }else{
         CCMessageBox(regData.msg.c_str(), "提示");

@@ -131,10 +131,17 @@ void LoginScene::loginEnd(bool suc, std::string s, void*param)
         d.Parse<0>(s.c_str());
         //登录数据
         //{"state":1,"data":{"id":1,"bio":"13678972729","avatar":5,"state":1}}
+        
+        //登录返回的数据
+        //{"state":1,"data":{"id":1,"realName":"wang","phoneNumber":"13678972729","bio":"13678972729","like_team":5,"state":1}}
+        const rapidjson::Value &rdata = d["data"];
         Logic *lg = Logic::getInstance();
         lg->setLoginName(m_userName->getText());
         lg->setUID(d["data"]["id"].GetInt());
         lg->setFlagId(d["data"]["like_team"].GetInt());
+        lg->setRealName(rdata["realName"].GetString());
+        lg->setPhoneNumber(rdata["phoneNumber"].GetString());
+        lg->setBio(rdata["bio"].GetString());
         
         CCScene* pScene = WorldCup::scene();
         pDirector->replaceScene(pScene);
