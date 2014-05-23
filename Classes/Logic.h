@@ -13,6 +13,11 @@
 #include "cocos2d.h"
 #include "cocos-ext.h"
 #include "HttpModel.h"
+#include "Match.h"
+#include <vector>
+using namespace std;
+
+
 
 using namespace cocos2d;
 
@@ -20,6 +25,8 @@ extern bool DEBUG;
 
 class Logic : CCObject {
 public:
+    vector<Match> allMatch;
+    
     static Logic *getInstance();
     Logic();
     void initMatchInfo();
@@ -42,7 +49,7 @@ public:
     
     bool initMatchYet;
     bool requestYet;
-    rapidjson::Document *d;
+    //rapidjson::Document *d;
     
     
     

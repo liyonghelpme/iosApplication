@@ -34,7 +34,7 @@ initMatchYet(false)
 {
     srand(time(NULL));
     uid = rand()%1000;
-    d = new rapidjson::Document();
+    //d = new rapidjson::Document();
     flagId = rand()%32+1;
 }
 
@@ -123,16 +123,16 @@ bool Logic::fetchOldMatchInfo(){
 
 void Logic::initNewMatchOver(bool isSuc, string s, void *param){
     if (isSuc) {
-        rapidjson::Document *d2 = new rapidjson::Document();
+        rapidjson::Document d2;
         
-        (*d2).Parse<0>(s.c_str());
+        d2.Parse<0>(s.c_str());
         //没有获得最后一条数据
         //最多 7*4 = 140 天的数据
-        CCLog("initNewMatchOver %d %d %s", (*d2)["data"].Size(), testNum, s.c_str());
+        CCLog("initNewMatchOver %d %d %s", d2["data"].Size(), testNum, s.c_str());
         
-        int gsize = (*d2)["data"].Size();
+        int gsize = d2["data"].Size();
         if (gsize == 0 && testNum < 3) {
-            delete d2;
+            //delete d2;
             realFetchNewMatch();
         } else {
             if (gsize == 0) {
@@ -142,43 +142,59 @@ void Logic::initNewMatchOver(bool isSuc, string s, void *param){
             initMatchYet = true;
             inRequest = false;
             
-            startInd = (*d)["data"].Size();
-            endInd = startInd+(*d2)["data"].Size();
+            startInd = allMatch.size();
+            //startInd = (*d)["data"].Size();
+            endInd = startInd+d2["data"].Size();
             
-            rapidjson::Document::AllocatorType &alloc = d->GetAllocator();
+            //rapidjson::Document::AllocatorType &alloc = d->GetAllocator();
             
-            int size =(*d2)["data"].Size();
-            CCLog("old data %d", (*d2)["data"].Size());
+            //CCLog("push new Match %d", gsize);
+            
+            int size = d2["data"].Size();
+            CCLog("old data %d", d2["data"].Size());
             //popBack 会导致整个数组 被销毁
             //将d2 拼接到 d 上面
+            
+            
             for (int i = 0; i < size; i++) {
-                rapidjson::Value &v = (*d2)["data"][i];
-                (*d)["data"].PushBack(v, alloc);
-            }
-            /*
-            while (size > 0) {
-                rapidjson::Value &v = (*d2)["data"].PopBack();
-                CCLog("value type %d", v.GetType());
-                //v.Accept(<#Handler &handler#>)
+                rapidjson::Value &v = d2["data"][i];
+                Match mat;
+                mat.start_time = v["start_time"].GetInt64();
+                mat.end_time = v["end_time"].GetInt64();
+                mat.mid = v["id"].GetInt();
+                mat.cate_name = v["cate_name"].GetString();
+                mat.title = v["title"].GetString();
+                mat.host_name = v["host_name"].GetString();
+                mat.guest_name = v["guest_name"].GetString();
+                
+                allMatch.push_back(mat);
+                
+                //rapidjson::Value tobj = v;
+                
+                //push Value  会分配内存空间
+                /*
                 rapidjson::StringBuffer strbuf;
                 rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
                 v.Accept(writer);
+                CCLog("out strin %s", strbuf.GetString());
+                */
                 
-                CCLog("v value %s", strbuf.GetString());
+                //(*d)["data"].PushBack(v, alloc);
                 
-                (*d)["data"].PushBack(v, alloc);
-                size--;
             }
-             */
+            //将d2 的数据移动出来 原始的设置成NULL 然后再释放原始对象
             
-            /*
-             for (int i = 0; i < (*d)["data"].Size(); i++) {
-             rapidjson::Value &v = (*d)["data"].PopBack();
-             (*d2)["data"].PushBack(v, alloc);
-             }
-             */
+            
+            //CCLog("new Size is %d", (*d)["data"].Size());
+            CCLog("new Size is %d", allMatch.size());
             //d = d2;
-            delete d2;
+            //delete d2;
+            /*
+            rapidjson::StringBuffer strbuf;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
+            d->Accept(writer);
+            CCLog("out strin %s", strbuf.GetString());
+            */
         }
         
     }
@@ -187,14 +203,14 @@ void Logic::initNewMatchOver(bool isSuc, string s, void *param){
 void Logic::initOldMatchOver(bool isSuc, string s, void *param){
     if (isSuc) {
         
-        rapidjson::Document *d2 = new rapidjson::Document();
+        rapidjson::Document d2;// = new rapidjson::Document();
+        d2.Parse<0>(s.c_str());
         
-        (*d2).Parse<0>(s.c_str());
         //没有获得最后一条数据
         //最多 7*4 = 140 天的数据
-        CCLog("initOldMatchOver %d %d", (*d2)["data"].Size(), testNum);
-        if ((*d2)["data"].Size() == 0 && testNum < 3) {
-            delete d2;
+        CCLog("initOldMatchOver %d %d", d2["data"].Size(), testNum);
+        if (d2["data"].Size() == 0 && testNum < 3) {
+            //delete d2;
             realFetchOldMatch();
         } else {
             initMatchYet = true;
@@ -202,15 +218,26 @@ void Logic::initOldMatchOver(bool isSuc, string s, void *param){
             
             
             startInd = 0;
-            endInd = (*d2)["data"].Size();
-            rapidjson::Document::AllocatorType &alloc = d2->GetAllocator();
-            CCLog("old data %d", (*d)["data"].Size());
-            int size =(*d)["data"].Size();
+            endInd = d2["data"].Size();
             
+            //rapidjson::Document::AllocatorType &alloc = d2->GetAllocator();
+            CCLog("old data %d", allMatch.size());
+            int size = d2["data"].Size();
             
+            rapidjson::Value &d = d2["data"];
             for (int i = 0; i < size; i++) {
-                rapidjson::Value &v = (*d)["data"][i];
-                (*d2)["data"].PushBack(v, alloc);
+                Match mat;
+                mat.mid = d[i]["id"].GetInt();
+                mat.start_time = d[i]["start_time"].GetInt64();
+                mat.end_time = d[i]["start_time"].GetInt64();
+                mat.cate_name = d[i]["cate_name"].GetString();
+                mat.title = d[i]["title"].GetString();
+                mat.host_name = d[i]["host_name"].GetString();
+                mat.guest_name = d[i]["guest_name"].GetString();
+                allMatch.insert(allMatch.begin()+i, mat);
+                
+                //rapidjson::Value &v = (*d)["data"][i];
+                //(*d2)["data"].PushBack(v, alloc);
             }
             //popBack 会导致整个数组 被销毁
             /*
@@ -227,8 +254,8 @@ void Logic::initOldMatchOver(bool isSuc, string s, void *param){
                 (*d2)["data"].PushBack(v, alloc);
             }
              */
-            delete d;
-            d = d2;
+            //delete d;
+            //d = d2;
         }
     }
 }
@@ -325,15 +352,28 @@ void Logic::initChatOver(bool isSuc, string s, void *param){
 
 void Logic::initMatchOver(bool isSuc, string s, void *param) {
     //initMatchYet = true;
-    //rapidjson::Document d;
-    d->Parse<0>(s.c_str());
+    rapidjson::Document d;
+    d.Parse<0>(s.c_str());
+    
     //没有获得最后一条数据
     //最多 7*20 = 140 天的数据
-    CCLog("initMatchOver %d", (*d)["data"].Size());
-    if ((*d)["data"].Size() == 0 && testNum < 20) {
+    CCLog("initMatchOver %d", (d)["data"].Size());
+    if ((d)["data"].Size() == 0 && testNum < 20) {
         this->initMatchInfo();
     } else {
         initMatchYet = true;
+        for (int i=0; i < d.Size(); i++) {
+            Match mat;
+            mat.mid = d[i]["id"].GetInt();
+            mat.start_time = d[i]["start_time"].GetInt64();
+            mat.end_time = d[i]["start_time"].GetInt64();
+            mat.cate_name = d[i]["cate_name"].GetString();
+            mat.title = d[i]["title"].GetString();
+            mat.host_name = d[i]["host_name"].GetString();
+            mat.guest_name = d[i]["guest_name"].GetString();
+            
+            allMatch.push_back(mat);
+        }
     }
     
     /*

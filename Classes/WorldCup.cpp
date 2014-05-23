@@ -12,6 +12,8 @@
 #include "ConfigView.h"
 #include "FriendView.h"
 #include <stdlib.h>
+#include "writer.h"
+#include "stringbuffer.h"
 
 //#include "Match.h"
 
@@ -491,10 +493,16 @@ void WorldCup::showScroll() {
         time(&now);
         for (rapidjson::SizeType i=Logic::getInstance()->startInd; i < Logic::getInstance()->endInd; i++) {
             const rapidjson::Value &c = b[i];
+            rapidjson::StringBuffer strbuf;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
+            c.Accept(writer);
+            CCLog("c is %s", strbuf.GetString());
+            
             //string d = c["date"].GetString();
             //CCLog(c.IsObject());
             CCLog("type %d", c.GetType());
             //毫秒
+            //BUG:
             long long start_time = c["start_time"].GetUint64();
             start_time /= 1000;
             

@@ -19,12 +19,19 @@ using namespace std;
 class Match : public CCObject{
 public:
     int mid;
-    string host;
-    string guest;
+    string cate_name;
+    string title;
+    string host_name;
+    string guest_name;
+    long long start_time;
+    long long end_time;
+    
+    
+    
     string result;
     string comment;
-    long long startTime;
-    long long endTime;
+    
+    
 };
 
 
