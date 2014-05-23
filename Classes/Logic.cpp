@@ -427,6 +427,8 @@ void Logic::fetchInfo() {
 
 /*
  {"state":1,"data":{"id":1,"realName":"wang","phoneNumber":"13678972729","bio":"13678972729","avatar":"abc","confirmTime":null,"registerTime":null,"gender":1,"likeTeam":5,"area":"ccc","state":1}}
+ 
+ {"state":1,"data":{"id":34,"realName":"%ffffffe6%ffffff9c%ffffff9f%ffffffe5%ffffffbe%ffffff85","phoneNumber":"13128513873","bio":null,"avatar":null,"confirmTime":null,"registerTime":1400839190513,"gender":1,"likeTeam":7,"area":"%ffffffe6%ffffff98%ffffffaf%ffffffe4%ffffffb8%ffffff8d%ffffffe6%ffffff98%ffffffaf","state":1}}
  */
 void Logic::fetchOver(bool isSuc, string s, void *param) {
     fetchInfoState = 2;
@@ -436,7 +438,9 @@ void Logic::fetchOver(bool isSuc, string s, void *param) {
         const rapidjson::Value &bd = d["data"];
         realName = bd["realName"].GetString();
         phoneNumber = bd["phoneNumber"].GetString();
-        bio = bd["bio"].GetString();
+        if(!bd["bio"].IsNull()) {
+            bio = bd["bio"].GetString();
+        }
         gender = bd["gender"].GetInt();
         flagId = bd["likeTeam"].GetInt();
         area = bd["area"].GetString();

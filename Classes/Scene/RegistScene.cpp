@@ -136,6 +136,7 @@ void RegistScene::onEnter(){
     //性别复选框
     UICheckBox* manCheckBox = (UICheckBox*)addshow->getChildByTag(44)->getChildByTag(224);
     UICheckBox* WomCheckBox = (UICheckBox*)addshow->getChildByTag(44)->getChildByTag(227);
+    
     manCheckBox->addEventListenerCheckBox(this, checkboxselectedeventselector(RegistScene::sexCheckBoxPress));
     WomCheckBox->addEventListenerCheckBox(this, checkboxselectedeventselector(RegistScene::sexCheckBoxPress));
     manCheckBox->setSelectedState(true);
@@ -187,7 +188,7 @@ void RegistScene::onEnter(){
      m_realName->setInputMode(kEditBoxInputModeAny);
      m_realName->setReturnType(kKeyboardReturnTypeDone);
      m_realName->setFontColor(ccc3(80,80,80));
-     m_realName->setPosition(ccp(180,458));
+     m_realName->setPosition(ccp(180,522));
      m_realName->setDelegate(this);
      m_realName->setTouchPriority(0);
     
@@ -201,7 +202,7 @@ void RegistScene::onEnter(){
 	m_itrsPhoneNum->setInputMode(kEditBoxInputModePhoneNumber);
 	m_itrsPhoneNum->setReturnType(kKeyboardReturnTypeDone);
     m_itrsPhoneNum->setFontColor(ccc3(80,80,80));
-	m_itrsPhoneNum->setPosition(ccp(180,441));
+	m_itrsPhoneNum->setPosition(ccp(180,458));
 	m_itrsPhoneNum->setDelegate(this);
 	m_itrsPhoneNum->setTouchPriority(0);
     
@@ -426,8 +427,10 @@ void RegistScene::setPerfectEnd(bool suc, std::string s, void*param){
     CCUserDefault::sharedUserDefault()->setIntegerForKey("avatar", coverView->getCurCardIndex() + 1);
     CCUserDefault::sharedUserDefault()->flush();
     CCDirector* pDirector = CCDirector::sharedDirector();
-    CCScene* pScene = LoginScene::scene();
+    CCScene* pScene = WorldCup::scene();
     pDirector->replaceScene(pScene);
+    
+    //Logic::getInstance()->setUID();
     CCLog("setPerfectEnd!");
 }
 
@@ -479,6 +482,10 @@ void RegistScene::registEnd(bool suc, std::string s, void*param)
         
         
         v_userid = regData.userid;
+        Logic *lg = Logic::getInstance();
+        //注册的时候 提交的 用户信息 喜欢的球队信息
+        
+        lg->setUID(regData.userid);
         //注册成功进入到完善资料
         showPanel(2);
         

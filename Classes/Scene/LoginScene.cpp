@@ -110,7 +110,7 @@ void LoginScene::refurbishScene(){
     
     if(avatarKey > 0 && avatarKey <= 32){
         char avatarItem[50];
-        sprintf(avatarItem, "flag/%d.png", avatarKey);
+        sprintf(avatarItem, "flags/%d.png", avatarKey);
         userIcon->loadTexture(avatarItem);
     }
 
@@ -143,13 +143,14 @@ void LoginScene::loginEnd(bool suc, std::string s, void*param)
         CCUserDefault::sharedUserDefault()->flush();
         
         
-        
+        Logic::getInstance()->setUID(loginData.userid);
         //初始化登录信息
         CCDirector* pDirector = CCDirector::sharedDirector();
         if(loginData.isPerfect == 1){
             CCLog("loginEnd finish");
             CCScene* pScene = WorldCup::scene();
             pDirector->replaceScene(pScene);
+            
         }else{
             CCLog("Userid::%d",loginData.userid);
             CCUserDefault::sharedUserDefault()->setIntegerForKey("setPerfectFormId", loginData.userid);
@@ -159,7 +160,7 @@ void LoginScene::loginEnd(bool suc, std::string s, void*param)
             pDirector->replaceScene(pScene);
             
         }
-
+        
         
     }else{
     //登陆失败

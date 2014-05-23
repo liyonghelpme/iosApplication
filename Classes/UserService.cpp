@@ -103,5 +103,6 @@ bool UserService::analyzePerfectRect(string s)
     rapidjson::Document d;
     d.Parse<0>(s.c_str());
     int re = d["state"].GetInt();
+    return re;
 }
 

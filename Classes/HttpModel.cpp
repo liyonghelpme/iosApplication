@@ -26,11 +26,12 @@ HttpModel::HttpModel(){
     //baseUrl = "http://localhost:5000/";
     
     
-    //baseUrl = "http://172.17.0.145:91/";
+    baseUrl = "http://172.17.0.145:91/";
     baseRedisHost = "172.17.0.145";
     
+    
     //my server
-    baseUrl = "http://172.17.0.45:5000/";
+    //baseUrl = "http://172.17.0.45:5000/";
     //baseRedisHost = "172.17.0.45";
 }
 struct TempData {
