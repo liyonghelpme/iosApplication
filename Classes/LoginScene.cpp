@@ -12,6 +12,8 @@
 #include "Logic.h"
 #include "RegistScene.h"
 
+#include "WorldCup.h"
+
 
 UIWidget* loginWidget;
 
@@ -123,7 +125,19 @@ void LoginScene::loginEnd(bool suc, std::string s, void*param)
         CCUserDefault::sharedUserDefault()->flush();
         
         
-        Logic::getInstance()->setLoginName(m_userName->getText());
+        
+        //初始化登录信息
+        rapidjson::Document d;
+        d.Parse<0>(s.c_str());
+        //登录数据
+        //{"state":1,"data":{"id":1,"bio":"13678972729","avatar":5,"state":1}}
+        Logic *lg = Logic::getInstance();
+        lg->setLoginName(m_userName->getText());
+        lg->setUID(d["data"]["id"].GetInt());
+        lg->setFlagId(d["data"]["like_team"].GetInt());
+        
+        CCScene* pScene = WorldCup::scene();
+        pDirector->replaceScene(pScene);
         
     }else{
     //登陆失败

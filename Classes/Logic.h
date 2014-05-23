@@ -84,6 +84,9 @@ public:
     void setNickName(string nk) {
         nickname = nk;
     }
+    void setFlagId(int fd) {
+        flagId = fd;
+    }
     
 private:
     

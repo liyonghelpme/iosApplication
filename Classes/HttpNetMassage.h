@@ -14,22 +14,27 @@ using namespace std;
 #define NET_HOST "http://172.17.0.145:91/"//ip地址
 #define NET_LOGIN "user/login" //登陆
 #define NET_REGIST "user/register"//注册
+//#define NET_SETPERFECT "user/setprefect"    //修改资料
 
 
-//登录时候 和 注册时候的 消息用于Logic 初始化信息
 
 //消息基本数据结构..供底层使用
 //登陆
 typedef struct NetLogin
 {
-
-
+    int status;
+    int userid;
+    int avatar;
+    int isPerfect;  //是否完善资料
 }NetLogin;
+
 //注册
 typedef struct NetRegist
 {
     int status;
+    int userid;
     string msg;
     
 }NetRegist;
+
 #endif

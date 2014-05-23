@@ -36,6 +36,9 @@ private:
     void onScroll(CCObject*, ScrollviewEventType);
     void onRefresh(bool isSuc, std::string s, void* p);
     
+    void showBasic();
+    void showScroll();
+    
     
     void refreshOnlineNum(float);
     
