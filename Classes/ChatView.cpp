@@ -74,48 +74,19 @@ bool ChatView::init(){
     //CCLog("back is touch %d %d", w->isTouchEnabled(), w->isEnabled());
     
     
-    const rapidjson::Value* minf = Logic::getInstance()->matchInfo;
+    Match *minf = Logic::getInstance()->matchInfo;
     
     Label *title = static_cast<Label*>(UIHelper::seekWidgetByName(w, "title"));
     //if (!DEBUG) {
     
-    string tname = (*minf)["host_name"].GetString();
+    string tname = minf->host_name;
     tname += "VS";
-    tname += (*minf)["guest_name"].GetString();
+    tname += minf->guest_name;
     title->setText(tname);
     
     curTime = static_cast<Label*>(UIHelper::seekWidgetByName(w, "time"));
     
-    
-    
-    /*
-    bool rn = (*minf)["result"].IsNull();
-    if (rn) {
-        Label *slab = static_cast<Label*>(UIHelper::seekWidgetByName(w, "score"));
-        string sc = "比分0:0";
-        
-        slab->setText(sc);
-    } else {
-        string res = (*minf)["result"].GetString();
-        
-        Label *slab = static_cast<Label*>(UIHelper::seekWidgetByName(w, "score"));
-        string sc = "比分 ";
-        sc += res;
-        
-        slab->setText(sc);
-    }
-    */
-    
-    /*
-    Label *slab = static_cast<Label*>(UIHelper::seekWidgetByName(w, "score"));
-    string sc = "比分 ";
-    sc += (*minf)["score1"].GetInt();
-    sc += ":";
-    sc += (*minf)["score2"].GetInt();
-    slab->setText(sc);
-    */
-    
-    //}
+   
     
     
     
@@ -189,6 +160,12 @@ bool ChatView::init(){
     myvoice->setEnabled(false);
     
     
+    myImg = static_cast<Layout*>(UIHelper::seekWidgetByName(w, "myImg"));
+    myImg->setEnabled(false);
+    otherImg = static_cast<Layout*>(UIHelper::seekWidgetByName(w, "otherImg"));
+    otherImg->setEnabled(false);
+    
+    
     otherVoice = static_cast<Layout*>(UIHelper::seekWidgetByName(w, "otherVoice"));
     ohead = static_cast<ImageView*>(UIHelper::seekWidgetByName(otherVoice, "ohead"));
     ovoice = static_cast<Button*>(UIHelper::seekWidgetByName(otherVoice, "ovoice"));
@@ -198,82 +175,7 @@ bool ChatView::init(){
     Button *cinfo = static_cast<Button*>(UIHelper::seekWidgetByName(w, "selfConfig"));
     cinfo->addTouchEventListener(this, toucheventselector(ChatView::onChatInfo));
     
-    
-    //lab->setSize(CCSizeMake(lwid, 768));
-    
-    
-    //lab->setTextAreaSize(CCSizeMake(lwid, 200));
-                         
-    /*
-    UILabel *testLabe = UILabel::create();
-    testLabe->setTextAreaSize(CCSizeMake(100,  768));
-    testLabe->setAnchorPoint(ccp(0, 1));
-    testLabe->setText("what fuck size is it why so big no wrap");
-    testLabe->setFontSize(30);
-    testLabe->ignoreContentAdaptWithSize(false);
-    testLabe->setSize(CCSizeMake(100, 100));
-    
-    
-    UITextField *tw = UITextField::create();
-    tw->ignoreContentAdaptWithSize(false);
-    tw->setSize(CCSizeMake(100, 100));
-    tw->setTextHorizontalAlignment(kCCTextAlignmentLeft);
-    tw->setTextVerticalAlignment(kCCVerticalTextAlignmentTop);
-    tw->setPlaceHolder("welcome to china");
-    tw->setText("come on why so long long long long long long long long ");
-    tw->setFontSize(30);
-    tw->setPosition(ccp(300 , 600));
-    tw->setAnchorPoint(ccp(0.5, 0.5));
-    //oneWord->addChild(tw);
-    lay->addWidget(tw);
-    
-    UITextField* textField = UITextField::create();
-    textField->ignoreContentAdaptWithSize(false);
-    textField->setSize(CCSizeMake(240, 160));
-    textField->setTextHorizontalAlignment(kCCTextAlignmentCenter);
-    textField->setTextVerticalAlignment(kCCVerticalTextAlignmentCenter);
-    textField->setTouchEnabled(true);
-    textField->setFontName("Marker Felt");
-    textField->setFontSize(30);
-    textField->setPlaceHolder("input words here");
-    textField->setPosition(ccp(300, 300));
-    //textField->setPosition(ccp(widgetSize.width / 2.0f, widgetSize.height / 2.0f));
-    //textField->addEventListenerTextField(this, textfieldeventselector(UITextFieldTest_LineWrap::textFieldEvent));
-    //m_pUiLayer->addWidget(textField);
-    
-    lay->addWidget(textField);
-    oneWord->addChild(testLabe);
-    */
-    
-    
-    /*
-    //未知的bug 导致lab设置老出错 用button替换掉  因为另外一个 TextField 也叫做 word 导致重名产生问题了 在上面的 tf = 赋值的时候 出错了
-    lab = UILabel::create();
-    lab->setText("test Word");
-    
-    
-    UIButton *word = static_cast<UIButton*>(UIHelper::seekWidgetByName(oneWord, "userDialog"));
-    lab->setPosition(word->getPosition());
-    lab->setAnchorPoint(word->getAnchorPoint());
-    lab->setTextHorizontalAlignment(kCCTextAlignmentLeft);
-    lab->setTextVerticalAlignment(kCCVerticalTextAlignmentTop);
-    lab->setFontSize(word->getTitleFontSize());
-    lab->setFontName(word->getTitleFontName());
-    
-    word->setEnabled(false);
-    word->removeFromParent();
-    */
-    
-    
-    
-    //oneWord->addChild(lab);
-    
-    
-    
-    //content = static_cast<UIButton*>(UIHelper::seekWidgetByName(oneWord, "content"));
-    
-    //word = static_cast<UILabel*>(UIHelper::seekWidgetByName(oneWord, "word"));
-    //word->setEnabled(false);
+
     
     CCLog("initial listView");
     
@@ -491,6 +393,31 @@ void ChatView::onSay(cocos2d::CCObject *obj, TouchEventType tt){
             break;
     }
 }
+
+
+string ChatView::getVoiceTime(int vl) {
+    char buf[512];
+    int smh[3];
+    smh[0] = vl%60;
+    vl /= 60;
+    smh[1] = vl%60;
+    vl /= 60;
+    smh[2] = vl%60;
+    
+    bool notZero = false;
+    string rt;
+    for (int i = 2; i > -1; i--) {
+        if (notZero || smh[i] > 0 || i == 0) {
+            notZero = true;
+            sprintf(buf, "%d\"", smh[i]);
+            rt += buf;
+        }
+    }
+    CCLog("length voice %s", rt.c_str());
+    return rt;
+}
+
+
 void ChatView::onSpeak(cocos2d::CCObject *obj, TouchEventType tt){
     switch (tt) {
         case cocos2d::ui::TOUCH_EVENT_BEGAN:
@@ -522,6 +449,39 @@ void ChatView::onSpeak(cocos2d::CCObject *obj, TouchEventType tt){
             voice->setTag(getMyRecordVid());
             voice->addTouchEventListener(this, toucheventselector(ChatView::onVoice));
             
+            
+            stopRecord();
+            
+            
+            Label *vt = static_cast<Label*>(UIHelper::seekWidgetByName(pan, "voiceTime"));
+            
+            const char *fn = getFileName();
+            CCLog("file name %s", fn);
+            int vl = getVoiceLength(fn);
+            CCLog("getVoiceLength %d", vl);
+            
+            char buf[512];
+            int smh[3];
+            smh[0] = vl%60;
+            vl /= 60;
+            smh[1] = vl%60;
+            vl /= 60;
+            smh[2] = vl%60;
+            
+            bool notZero = false;
+            string rt;
+            for (int i = 2; i > -1; i--) {
+                if (notZero || smh[i] > 0 || i == 0) {
+                    notZero = true;
+                    sprintf(buf, "%d\"", smh[i]);
+                    rt += buf;
+                }
+            }
+            CCLog("length voice %s", rt.c_str());
+            vt->setText(rt);
+            
+            
+            
             pan->setEnabled(true);
             pan->setSize(CCSizeMake(fs.width, height));
             pan->setSizeType(SIZE_ABSOLUTE);
@@ -529,9 +489,7 @@ void ChatView::onSpeak(cocos2d::CCObject *obj, TouchEventType tt){
             lv->pushBackCustomItem(pan);
             
             
-            stopRecord();
-            const char *fn = getFileName();
-            CCLog("file name %s", fn);
+            
             //connect redis server
             //connect();
             //send data to server
@@ -632,6 +590,8 @@ void ChatView::onSend(cocos2d::CCObject *obj, TouchEventType tt){
             
             UIPanel *pan = static_cast<UIPanel*>(twoWord->clone());
             ImageView *head2 = static_cast<ImageView*>(UIHelper::seekWidgetByName(pan, "head2"));
+            ImageView *chatBack = static_cast<ImageView*>(UIHelper::seekWidgetByName(pan, "chatBack"));
+            chatBack->setSize(CCSizeMake(ws.width+40, ws.height+20));
             char buf[512];
             sprintf(buf, "flags/%d.png", Logic::getInstance()->getFlagId());
             head2->loadTexture(buf);
@@ -790,7 +750,8 @@ void ChatView::onMsg(bool isSuc, std::string s, void *param) {
                 
                 UIPanel *pan = static_cast<UIPanel*>(oneWord->clone());
                 ImageView *head = static_cast<ImageView*>(UIHelper::seekWidgetByName(pan, "head"));
-                
+                ImageView *chatBack = static_cast<ImageView*>(UIHelper::seekWidgetByName(pan, "chatBack"));
+                chatBack->setSize(CCSizeMake(ws.width+40, ws.height+20));
                 
                 char buf[512];
                 sprintf(buf, "flags/%d.png", flagId);
@@ -818,30 +779,6 @@ void ChatView::receiveMsg(){
         state = 1;
         int cid = Logic::getInstance()->getCID();
         MessageService::getInstance()->getHistoryMessage(cid, this, MYHTTP_SEL(ChatView::onMsg));
-        
-        
-        /*
-        HttpModel *hm = HttpModel::getInstance();
-        char buf[512];
-        long long startTime, endTime;
-        
-        //当前时间
-        time_t td;
-        time(&td);
-        //tm *timeinfo;
-        //timeinfo = localtime(&(td));
-        
-        endTime = td+1000;//当期时间向后延续一些
-        startTime = endTime-3600*24;
-        
-        startTime *= 1000;
-        endTime *= 1000;
-        
-        sprintf(buf, "message/%d/%lld/%lld", cid, startTime, endTime);
-        std::map<string, string> postData;
-        
-        hm->addRequest(buf, "GET", postData, this, MYHTTP_SEL(ChatView::onMsg), NULL);
-        */
         
     //从redis 服务器接收数据
     }else if (state == 2) {
@@ -922,7 +859,8 @@ void ChatView::receiveMsg(){
                     sprintf(buf, "flags/%d.png", flagId);
                     ImageView *head = static_cast<ImageView*>(UIHelper::seekWidgetByName(pan, "head"));
                     head->loadTexture(buf);
-                    
+                    ImageView *chatBack = static_cast<ImageView*>(UIHelper::seekWidgetByName(pan, "chatBack"));
+                    chatBack->setSize(CCSizeMake(ws.width+40, ws.height+20));
                     
                     CCLog("push CutonItem where");
                     lv->pushBackCustomItem(pan);
@@ -949,6 +887,13 @@ void ChatView::receiveMsg(){
                     pan->setSize(CCSizeMake(fs.width, height));
                     pan->setSizeType(SIZE_ABSOLUTE);
                     pan->setVisible(true);
+                    
+                    
+                    Label *vt = static_cast<Label*>(UIHelper::seekWidgetByName(pan, "voiceTime"));
+                    string rt = getVoiceTime(d["length"].GetInt());
+                    vt->setText(rt);
+                    
+                    
                     Button *newVoice = static_cast<Button*>(UIHelper::seekWidgetByName(pan, "ovoice"));
                     newVoice->addTouchEventListener(this, toucheventselector(ChatView::onOtherVoice));
                     newVoice->setTag(vid);
@@ -962,29 +907,6 @@ void ChatView::receiveMsg(){
                     unsigned char *out;
                     int outLen = cocos2d::base64Decode(image, strlen((const char*)image), &out);
                     
-                    /*
-                     bool compareData = true;
-                     int llen;
-                     unsigned char *ldata = (unsigned char*)getImage(&llen);
-                     //decode 的数据是错误的
-                     if (ldata != NULL) {
-                     CCLog("data lenght %d %d", llen, outLen);
-                     //长度相同但是 解压缩后的数据不同为什么呢？
-                     for (int i = 0 ; i < 100 && i < llen; i++) {
-                     CCLog("%x %c %x %c", (unsigned char)ldata[i], ldata[i], (unsigned char)out[i], out[i]);
-                     }
-                     for (int i = 0; i < llen; i++) {
-                     if (ldata[i] != out[i]) {
-                     compareData = false;
-                     break;
-                     }
-                     }
-                     if (!compareData) {
-                     CCLog("data different!!");
-                     }
-                     
-                     }
-                     */
                     
                     char name[128];
                     int imgId = Logic::getInstance()->getImgId();
@@ -1010,11 +932,16 @@ void ChatView::receiveMsg(){
                     //ovoice->setTag(vid);
                     //vid++;
                     
-                    UIPanel *pan = static_cast<UIPanel*>(otherVoice->clone());
+                    UIPanel *pan = static_cast<UIPanel*>(otherImg->clone());
                     pan->setEnabled(true);
                     pan->setSize(CCSizeMake(fs.width, height));
                     pan->setSizeType(SIZE_ABSOLUTE);
                     pan->setVisible(true);
+                    ImageView *img = static_cast<ImageView*>(UIHelper::seekWidgetByName(pan, "img"));
+                    img->loadTexture(key, UI_TEX_TYPE_LOCAL);
+                    
+                    
+                    /*
                     Button *newVoice = static_cast<Button*>(UIHelper::seekWidgetByName(pan, "ovoice"));
                     newVoice->setTag(imgId);
                     newVoice->ignoreContentAdaptWithSize(false);
@@ -1022,6 +949,7 @@ void ChatView::receiveMsg(){
                     newVoice->setSize(ws);
                     //加载的发送的图像数据不对为什么呢？
                     newVoice->loadTextureNormal(key, UI_TEX_TYPE_LOCAL);
+                    */
                     //newVoice->addTouchEventListener(this, toucheventselector(ChatView::onOtherVoice));
                     //newVoice->setTag(vid);
                     //vid++;
@@ -1067,14 +995,19 @@ void ChatView::sendImg(){
             height += 20;
             
             
-            UIPanel *pan = static_cast<UIPanel*>(myvoice->clone());
-            Button *vimg = static_cast<Button*>(UIHelper::seekWidgetByName(pan, "voice2"));
+            UIPanel *pan = static_cast<UIPanel*>(myImg->clone());
+            //Button *vimg = static_cast<Button*>(UIHelper::seekWidgetByName(pan, "voice2"));
+            ImageView *img = static_cast<ImageView*>(UIHelper::seekWidgetByName(pan, "img"));
+            img->loadTexture(key, UI_TEX_TYPE_LOCAL);
+            
+            /*
             CCLog("vimg name %s", vimg->getName());
             vimg->loadTextureNormal(key, UI_TEX_TYPE_LOCAL);
             vimg->setSize(ws);
             vimg->setSizeType(SIZE_ABSOLUTE);
+            */
             //使用customSize 而不是图片自动size
-            vimg->ignoreContentAdaptWithSize(false);
+            img->ignoreContentAdaptWithSize(false);
             
             
             pan->setEnabled(true);

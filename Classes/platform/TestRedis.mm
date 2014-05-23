@@ -14,6 +14,7 @@
 #include "Logic.h"
 #import "ImgSelect.h"
 #include "MyBase64.h"
+#import <AVFoundation/AVFoundation.h>
 
 
 
@@ -130,7 +131,7 @@ void runSubscribe(void *tc){
         }else {
             NSLog([NSString stringWithFormat:@"%@", [retVal class]]);
         }
-        NSLog([NSString stringWithFormat:@"%@", retVal ]);
+        //NSLog([NSString stringWithFormat:@"%@", retVal ]);
         
         //NSLog(typeof(retVal));
         //NSLog([NSString stringWithFormat:@"%@", retVal]);
@@ -228,6 +229,8 @@ void *connect(){
     NSLog([NSString stringWithFormat:@"%@", retVal]);
     */
 }
+
+
 -(void)sendVoice:(const char *)fn{
     NSLog(@"send voice file");
     //NSLog([NSString stringWithFormat:@"%@", url ]);
@@ -238,6 +241,8 @@ void *connect(){
     if (redis == nil) {
         return;
     }
+    
+    int vl = getVoiceLength(fn);
     
     NSFileManager *fmr = [NSFileManager defaultManager];
     NSData *db = [fmr contentsAtPath:[NSString stringWithFormat:@"%s", fn]];
@@ -253,6 +258,8 @@ void *connect(){
     
     d.AddMember("sender", Logic::getInstance()->getSenderId(), allocator);
     d.AddMember("like_team", Logic::getInstance()->getFlagId(), allocator);
+    d.AddMember("length", int(vl), allocator);
+    
     
     rapidjson::StringBuffer strbuf;
     rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);

@@ -35,4 +35,5 @@
 -(BOOL) readData:(const char**)cha c:(const char**)con;
 
 -(void) redisSendText:(const char *)text;
+
 @end

@@ -281,14 +281,15 @@ void WorldCup::refreshOnlineNum(float diff){
             
             HttpModel *hm = HttpModel::getInstance();
             std::map<string, string> postData;
-            rapidjson::Document *d = Logic::getInstance()->d;
+            //rapidjson::Document *d = Logic::getInstance()->d;
+            vector<Match> &allMatch = Logic::getInstance()->allMatch;
             //初始化比赛信息结束 之后 才可以 刷新比赛的 在线人数信息
-            if ((*d).IsObject()) {
+            if (allMatch.size() > 0) {
             
-                if (!(*d)["data"].IsNull() && lastUpdateIndex < (*d)["data"].Size()) {
+                if (lastUpdateIndex < allMatch.size()) {
                     inRefresh = true;
                     //请求的
-                    int mid = (*d)["data"][lastUpdateIndex++]["id"].GetInt();
+                    int mid = allMatch[lastUpdateIndex++].mid;
                     char buf[128];
                     sprintf(buf, "%d", mid);
                     postData["cid"] =  buf;
@@ -328,10 +329,12 @@ void WorldCup::showBasic(){
         //inUpdateData = false;
         
         //rapidjson::Document *d = MatchService::getInstance()->d;
-        rapidjson::Document *d = Logic::getInstance()->d;
+        //rapidjson::Document *d = Logic::getInstance()->d;
+        vector<Match> &allMatch  = Logic::getInstance()->allMatch;
         //const rapidjson::Value &b = d["matches"];
         
-        const rapidjson::Value &b = (*d)["data"];
+        //const rapidjson::Value &b = (*d)["data"];
+        
         
         
         UILabel *title = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "round"));
@@ -351,11 +354,11 @@ void WorldCup::showBasic(){
         time_t now;
         time(&now);
         
-        for (rapidjson::SizeType i=0; i < b.Size(); i++) {
-            const rapidjson::Value &c = b[i];
+        for (int i=0; i < allMatch.size(); i++) {
+            Match &c = allMatch[i];
             //string d = c["date"].GetString();
             //毫秒
-            long long start_time = c["start_time"].GetUint64();
+            long long start_time = c.start_time;
             start_time /= 1000;
             
             tm *timeinfo;
@@ -381,10 +384,9 @@ void WorldCup::showBasic(){
             //添加比赛信息
             sprintf(minfo, "%.2d:%.2d", hour, min);
             
-            string tit = c["cate_name"].GetString();
-            if(!c["title"].IsNull()) {
-                tit += emp+c["title"].GetString()+emp+minfo;
-            }
+            string tit = c.cate_name;
+            tit += emp+c.title+emp+minfo;
+            
             //string tit = c["title"].GetString();
             //tit += emp+ c["time"].GetString();
             
@@ -394,12 +396,12 @@ void WorldCup::showBasic(){
             //c["online"].GetInt()
             sprintf(on, "在线:%d人", ol);
             online->setText(on);
-            host->setText(c["host_name"].GetString());
-            client->setText(c["guest_name"].GetString());
+            host->setText(c.host_name);
+            client->setText(c.guest_name);
             
             Layout *ly = static_cast<Layout*>(cp->clone());
             
-            long long end_time = c["end_time"].GetUint64();
+            long long end_time = c.end_time;
             end_time /= 1000;
             
             
@@ -430,17 +432,17 @@ void WorldCup::showBasic(){
             
             
             
-            ly->setTag(c["id"].GetInt());
+            ly->setTag(c.mid);
             //use Match Id
             
             //bnt->setTag();
             //bnt->addTouchEventListener(this, toucheventselector(WorldCup::onChat));
-            int cid = c["id"].GetInt();
+            int cid = c.mid;
             
             realBnt->setTag(cid);
             realBnt->addTouchEventListener(this, toucheventselector(WorldCup::onChat));
             //比赛信息对应的 选择Item
-            dict->setObject(ly, c["id"].GetInt());
+            dict->setObject(ly, c.mid);
             
             lv->pushBackCustomItem(ly);
             
@@ -454,10 +456,12 @@ void WorldCup::showScroll() {
         
         inUpdateData = false;
         
-        rapidjson::Document *d = Logic::getInstance()->d;
+        //rapidjson::Document *d = Logic::getInstance()->d;
+        
+        vector<Match> &allMatch = Logic::getInstance()->allMatch;
         //const rapidjson::Value &b = d["matches"];
         
-        const rapidjson::Value &b = (*d)["data"];
+        //const rapidjson::Value &b = (*d)["data"];
         
         UILabel *title = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "round"));
         UILabel *online = static_cast<UILabel*>(UIHelper::seekWidgetByName(cp, "online"));
@@ -487,23 +491,27 @@ void WorldCup::showScroll() {
         
         //插到头部 或者插在尾部
         Logic *li = Logic::getInstance();
-        CCLog("start end index %d %d %d", li->startInd, li->endInd, b.Size());
+        CCLog("start end index %d %d %lu", li->startInd, li->endInd, allMatch.size());
         
         time_t now;
         time(&now);
         for (rapidjson::SizeType i=Logic::getInstance()->startInd; i < Logic::getInstance()->endInd; i++) {
+            Match c = allMatch[i];
+            /*
             const rapidjson::Value &c = b[i];
             rapidjson::StringBuffer strbuf;
             rapidjson::Writer<rapidjson::StringBuffer> writer(strbuf);
             c.Accept(writer);
             CCLog("c is %s", strbuf.GetString());
+            */
             
             //string d = c["date"].GetString();
             //CCLog(c.IsObject());
-            CCLog("type %d", c.GetType());
+            //CCLog("type %d", c.GetType());
             //毫秒
             //BUG:
-            long long start_time = c["start_time"].GetUint64();
+            long long start_time = c.start_time;
+            
             start_time /= 1000;
             
             tm *timeinfo;
@@ -529,8 +537,9 @@ void WorldCup::showScroll() {
             //添加比赛信息
             sprintf(minfo, "%.2d:%.2d", hour, min);
             
-            string tit = c["cate_name"].GetString();
-            tit += emp+c["title"].GetString()+emp+minfo;
+            string tit = c.cate_name;
+            
+            tit += emp+c.title+emp+minfo;
             
             //string tit = c["title"].GetString();
             //tit += emp+ c["time"].GetString();
@@ -541,14 +550,14 @@ void WorldCup::showScroll() {
             //c["online"].GetInt()
             sprintf(on, "在线:%d人", ol);
             online->setText(on);
-            host->setText(c["host_name"].GetString());
-            client->setText(c["guest_name"].GetString());
+            host->setText(c.host_name);
+            client->setText(c.guest_name);
             
             Layout *ly = static_cast<Layout*>(cp->clone());
             //Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "Button_12"));
             //Button *bnt = static_cast<Button*>(UIHelper::seekWidgetByName(ly, "full"));
             
-            long long end_time = c["end_time"].GetUint64();
+            long long end_time = c.end_time;
             end_time /= 1000;
             /*
             if (now >= end_time) {
@@ -585,7 +594,7 @@ void WorldCup::showScroll() {
             }
             
             
-            int cid = c["id"].GetInt();
+            int cid = c.mid;
             ly->setTag(cid);
             
             //bnt->setTag(c["id"].GetInt());
@@ -596,7 +605,7 @@ void WorldCup::showScroll() {
             
             //lv->pushBackCustomItem(ly);
             //添加 比赛id 对应的 item 映射关系
-            dict->setObject(ly, c["id"].GetInt());
+            dict->setObject(ly, c.mid);
             lv->insertCustomItem(ly, ordInd++);
         }
         
@@ -637,18 +646,21 @@ void WorldCup::onChat(cocos2d::CCObject *obj, TouchEventType tt){
         {
             Button *bnt = static_cast<Button*>(obj);
             int mid = bnt->getTag();
-            rapidjson::Document *d = Logic::getInstance()->d;
-            const rapidjson::Value &b = (*d)["data"];
+            //rapidjson::Document *d = Logic::getInstance()->d;
+            vector<Match> &allMatch = Logic::getInstance()->allMatch;
+            
+            //const rapidjson::Value &b = (*d)["data"];
             //const rapidjson::Value &c = b[mid];
             
             int realid = 0;
-            for (int i = 0; i < b.Size(); i++) {
-                if (b[i]["id"].GetInt() == mid) {
+            for (int i = 0; i < allMatch.size(); i++) {
+                if (allMatch[i].mid == mid) {
                     realid = i;
                     break;
                 }
             }
-            Logic::getInstance()->matchInfo = &b[realid];
+            
+            Logic::getInstance()->matchInfo = &allMatch[realid];
             CCDirector::sharedDirector()->pushScene(ChatView::scene());
             
             

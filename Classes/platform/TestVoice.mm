@@ -36,6 +36,20 @@ int getMyRecordVid(){
     TestVoice *tv = [TestVoice sharedRecord];
     return tv->myVid;
 }
+int getVoiceLength(const char*fn) {
+    return [[TestVoice sharedRecord] getLength:fn];
+}
+
+-(int)getLength:(const char *)fn{
+    NSURL *fileURL = [NSURL fileURLWithFileSystemRepresentation:fn isDirectory:false relativeToURL:false];
+    
+    AVURLAsset *audioAsset = [AVURLAsset URLAssetWithURL:fileURL options:nil];
+    NSLog([NSString stringWithFormat:@"%@", audioAsset]);
+    CMTime audioDuration = audioAsset.duration;
+    float audioT = CMTimeGetSeconds(audioDuration);
+    NSLog(@"audio time %f", audioT);
+    return audioT;
+}
 
 -(void) test{
     //保存自己的语音信息到本地数据存储中

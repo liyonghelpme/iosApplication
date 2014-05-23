@@ -44,5 +44,7 @@ void *getImage(int *length);
 bool checkGetYet();
 
 int getMyRecordVid();
+int getVoiceLength(const char *);
+
 
 #endif

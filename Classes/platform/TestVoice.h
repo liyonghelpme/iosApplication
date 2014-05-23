@@ -22,4 +22,5 @@
 -(void)stop;
 -(void)play;
 -(void)playTempVoice:(int)vid;
+-(int)getLength:(const char*)fn;
 @end

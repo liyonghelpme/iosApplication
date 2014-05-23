@@ -58,7 +58,9 @@ public:
     void storeData();
     
     //当前选择的比赛信息
-    const rapidjson::Value *matchInfo;
+    //const rapidjson::Value *matchInfo;
+    
+    Match *matchInfo;
     
     //本地存储的声音文件的编号
     int getVid();

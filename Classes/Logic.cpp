@@ -186,7 +186,7 @@ void Logic::initNewMatchOver(bool isSuc, string s, void *param){
             
             
             //CCLog("new Size is %d", (*d)["data"].Size());
-            CCLog("new Size is %d", allMatch.size());
+            CCLog("new Size is %lu", allMatch.size());
             //d = d2;
             //delete d2;
             /*
@@ -221,7 +221,7 @@ void Logic::initOldMatchOver(bool isSuc, string s, void *param){
             endInd = d2["data"].Size();
             
             //rapidjson::Document::AllocatorType &alloc = d2->GetAllocator();
-            CCLog("old data %d", allMatch.size());
+            CCLog("old data %lu", allMatch.size());
             int size = d2["data"].Size();
             
             rapidjson::Value &d = d2["data"];
@@ -332,7 +332,7 @@ void Logic::initChatInfo() {
     //if (DEBUG) {
     //    cid = 0;
     //}else {
-        cid = (*matchInfo)["id"].GetInt();
+        cid = matchInfo->mid;
     //}
     char buf[128];
     //sprintf(v, "%d", cid);
@@ -352,16 +352,17 @@ void Logic::initChatOver(bool isSuc, string s, void *param){
 
 void Logic::initMatchOver(bool isSuc, string s, void *param) {
     //initMatchYet = true;
-    rapidjson::Document d;
-    d.Parse<0>(s.c_str());
+    rapidjson::Document p;
+    p.Parse<0>(s.c_str());
     
     //没有获得最后一条数据
     //最多 7*20 = 140 天的数据
-    CCLog("initMatchOver %d", (d)["data"].Size());
-    if ((d)["data"].Size() == 0 && testNum < 20) {
+    CCLog("initMatchOver %d", p["data"].Size());
+    if (p["data"].Size() == 0 && testNum < 20) {
         this->initMatchInfo();
     } else {
         initMatchYet = true;
+        rapidjson::Value &d = p["data"];
         for (int i=0; i < d.Size(); i++) {
             Match mat;
             mat.mid = d[i]["id"].GetInt();
@@ -400,7 +401,7 @@ void Logic::storeData() {
 //比赛本身的id 作为频道ID
 int Logic::getCID() {
     if (matchInfo != NULL) {
-        return (*matchInfo)["id"].GetInt();
+        return matchInfo->mid;
     }
     return 0;
 }
@@ -439,5 +440,7 @@ void Logic::fetchOver(bool isSuc, string s, void *param) {
         gender = bd["gender"].GetInt();
         flagId = bd["likeTeam"].GetInt();
         area = bd["area"].GetString();
+    }else {
+        fetchInfoState = 0;
     }
 }

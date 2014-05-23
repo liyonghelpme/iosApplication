@@ -46,11 +46,12 @@ bool ConfigView::init(){
     Button *back = static_cast<Button*>(UIHelper::seekWidgetByName(w, "back"));
     back->addTouchEventListener(this, toucheventselector(ConfigView::onBack));
     
-    
+    scheduleUpdate();
     return true;
 }
 
 void ConfigView::initView() {
+    CCLog("init View");
     Button *head = static_cast<Button*>(UIHelper::seekWidgetByName(w, "head"));
     char buf[512];
     sprintf(buf, "flags/%d.png", Logic::getInstance()->getFlagId());
@@ -115,6 +116,7 @@ void ConfigView::update(float dt){
         } else if(Logic::getInstance()->fetchInfoState == 2) {
             getYet = true;
             initView();
+            
         }
     }
     

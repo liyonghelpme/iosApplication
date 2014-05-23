@@ -62,16 +62,8 @@ void RegistScene::onEnter(){
     
     for(int i=1; i<32;i++){
         char iconPath[100];
-        sprintf(iconPath, "flag/%d.png", i);
+        sprintf(iconPath, "flags/%d.png", i);
         CCSprite* player = CCSprite::create(iconPath);
-        
-        /*
-         UILabel* text = UILabel::create();
-         text->setText("test");
-         text->setColor(ccc3(0,0,0));
-         text->setPosition(ccp(50,50));
-         player->addChild(text);
-         */
         
         coverView->addCard(player);
     }

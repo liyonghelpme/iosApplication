@@ -41,6 +41,9 @@ public:
     
     ~ChatView();
 private:
+    std::string getVoiceTime(int);
+    
+    
     Widget *w;
     void onText(CCObject *, TextFiledEventType);
     void onSend(CCObject*, TouchEventType);
@@ -54,6 +57,7 @@ private:
     //出现拼音输入法的时候键盘还得再移动一下
     void pinyinMove();
     
+    Layout *myImg, *otherImg;
 
     void updateEnter(float);
     float lastUpdateTime;
