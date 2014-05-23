@@ -22,6 +22,17 @@ using namespace cocos2d;
 using namespace ui;
 using namespace extension;
 
+using namespace std;
+
+
+//球队信息
+typedef struct itemstruct_DDK{
+    int num;
+    string name;
+    string iconPath;
+}itemstruct;
+
+
 class RegistScene:public CCLayer,public CCEditBoxDelegate
 {
 public:
@@ -33,7 +44,12 @@ public:
     virtual void onEnter();
     virtual void onExit();
 private:
-
+    
+    int v_userid;
+    map<int, itemstruct> ballItem;
+    
+    CCEditBox *m_areaBox;
+    
     //注册到第几项
     int m_currsetup;
     //保存值
@@ -73,5 +89,8 @@ private:
     
     void showPanel(int setup);
     
+    void comebackPress(CCObject *pSender,TouchEventType type);
+    void sexCheckBoxPress(CCObject* pSender, CheckBoxEventType type);
+    void setPerfectEnd(bool suc, std::string s, void*param);
 };
 #endif /* defined(__BallParty__RegistScene__) */

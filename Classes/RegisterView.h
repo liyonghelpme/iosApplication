@@ -16,6 +16,8 @@
 using namespace cocos2d;
 using namespace extension;
 using namespace ui;
+
+
 class RegisterView : public CCLayer {
 public:
     virtual bool init();

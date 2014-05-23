@@ -39,9 +39,13 @@ void LoginScene::onEnter(){
     CCLayer::onEnter();
 	TouchGroup* ui = TouchGroup::create();
 	loginWidget = GUIReader::shareReader()->widgetFromJsonFile("Scene/LoginSence/LoginSence.json");
-	ui->addWidget(loginWidget);
+    loginWidget->setSizeType(SIZE_ABSOLUTE);
+    loginWidget->setSize(CCDirector::sharedDirector()->getVisibleSize());
+    
+    ui->addWidget(loginWidget);
 	ui->setAnchorPoint(CCPointZero);
 	this->addChild(ui);
+    
     
     //登陆区域
     UIPanel* login_panel = (UIPanel*)loginWidget->getChildByTag(4);
@@ -88,9 +92,29 @@ void LoginScene::onEnter(){
 void LoginScene::refurbishScene(){
     //本地有存储用户名
     string loginNmaeKey = CCUserDefault::sharedUserDefault()->getStringForKey("loginName");
+    
+    int avatarKey = CCUserDefault::sharedUserDefault()->getIntegerForKey("avatar");
+    CCLog("avatarKey:%d", avatarKey);
+    
     UIPanel* login_panel = (UIPanel*)loginWidget->getChildByTag(4);
     UIImageView* userIcon = (UIImageView*)login_panel->getChildByName("userIcon");
     UIImageView* usernameLable = (UIImageView*)login_panel->getChildByName("usernameLiImage");
+    
+    //输入框位置
+    UIImageView* passwordLiImage = (UIImageView*)login_panel->getChildByTag(57);
+    UIImageView* usernameLiImage = (UIImageView*)login_panel->getChildByTag(60);
+    CCPoint usernamePoint = usernameLiImage->getPosition();
+    m_userName->setPosition(ccp(usernamePoint.x - 407/2 + 30, usernamePoint.y - 5));
+    CCPoint pwdPoint = passwordLiImage->getPosition();
+    m_passWord->setPosition(ccp(pwdPoint.x - 407/2 + 30, pwdPoint.y - 5));
+    
+    if(avatarKey > 0 && avatarKey <= 32){
+        char avatarItem[50];
+        sprintf(avatarItem, "flag/%d.png", avatarKey);
+        userIcon->loadTexture(avatarItem);
+    }
+
+    
     
     if (loginNmaeKey != "") {
         //隐藏用户输入框
@@ -110,41 +134,32 @@ void LoginScene::refurbishScene(){
 
 void LoginScene::loginEnd(bool suc, std::string s, void*param)
 {
-    
-    if(UserService::shareUserService()->analyzeLoginRect(s)){
+    NetLogin loginData = UserService::shareUserService()->analyzeLoginRect(s);
+    if(loginData.status == 1){
     //登陆成功
-        CCLog("loginEnd finish");
-        CCDirector* pDirector = CCDirector::sharedDirector();
-        
-        //TODO 跳转登录成功后 进入赛事页面
-        //CCScene* pScene = ChatRoomScene::scene();
-        //pDirector->replaceScene(pScene);
-        
         //保存本地用户名
         CCUserDefault::sharedUserDefault()->setStringForKey("loginName", m_userName->getText());
+        CCUserDefault::sharedUserDefault()->setStringForKey("passWord", md5(m_passWord->getText()));
         CCUserDefault::sharedUserDefault()->flush();
         
         
         
         //初始化登录信息
-        rapidjson::Document d;
-        d.Parse<0>(s.c_str());
-        //登录数据
-        //{"state":1,"data":{"id":1,"bio":"13678972729","avatar":5,"state":1}}
-        
-        //登录返回的数据
-        //{"state":1,"data":{"id":1,"realName":"wang","phoneNumber":"13678972729","bio":"13678972729","like_team":5,"state":1}}
-        const rapidjson::Value &rdata = d["data"];
-        Logic *lg = Logic::getInstance();
-        lg->setLoginName(m_userName->getText());
-        lg->setUID(d["data"]["id"].GetInt());
-        lg->setFlagId(d["data"]["like_team"].GetInt());
-        lg->setRealName(rdata["realName"].GetString());
-        lg->setPhoneNumber(rdata["phoneNumber"].GetString());
-        lg->setBio(rdata["bio"].GetString());
-        
-        CCScene* pScene = WorldCup::scene();
-        pDirector->replaceScene(pScene);
+        CCDirector* pDirector = CCDirector::sharedDirector();
+        if(loginData.isPerfect == 1){
+            CCLog("loginEnd finish");
+            CCScene* pScene = WorldCup::scene();
+            pDirector->replaceScene(pScene);
+        }else{
+            CCLog("Userid::%d",loginData.userid);
+            CCUserDefault::sharedUserDefault()->setIntegerForKey("setPerfectFormId", loginData.userid);
+            CCUserDefault::sharedUserDefault()->flush();
+            
+            CCScene* pScene = RegistScene::scene();
+            pDirector->replaceScene(pScene);
+            
+        }
+
         
     }else{
     //登陆失败
@@ -154,7 +169,7 @@ void LoginScene::loginEnd(bool suc, std::string s, void*param)
         CCUserDefault::sharedUserDefault()->setStringForKey("loginName", "");
         CCUserDefault::sharedUserDefault()->flush();
         
-        Logic::getInstance()->setLoginName("");
+        //Logic::getInstance()->setLoginName("");
         
         refurbishScene();
     }
@@ -183,6 +198,7 @@ void LoginScene::loginPress(CCObject *pSender,TouchEventType type)
         case TOUCH_EVENT_ENDED:
             //直接发送 暂时忽略验证
             
+            //UserService::shareUserService()->login(m_userName->getText(),md5(m_passWord->getText()),this,MyHttpResp(&LoginScene::loginEnd));
             UserService::shareUserService()->login(m_userName->getText(),md5(m_passWord->getText()),this,MyHttpResp(&LoginScene::loginEnd));
             break;
         case TOUCH_EVENT_CANCELED:

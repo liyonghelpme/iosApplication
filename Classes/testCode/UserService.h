@@ -14,8 +14,6 @@
 #include "curl/curl.h"
 #include "cocos-ext.h"
 #include "HttpModel.h"
-#include "HttpNetMassage.h"
-
 using namespace cocos2d;
 using namespace extension;
 using namespace std;
@@ -26,16 +24,11 @@ public:
     static UserService* shareUserService();
     void login(string _loginName,string _password,CCNode* pTagert,MyHttpResp selector);
     void registe(string _loginName,string _password,string _passwordconfirm,string _referencePhoneNumber,CCNode* pTaget,MyHttpResp selector);
-    
     void setPerfect(string _userid, string _nick, string _gender, string _area, string _like, CCNode* pTagert,MyHttpResp selector);
-    
     //解析服务器过来的数据信息
     NetRegist analyzeRegistRect(string s);
-    //bool analyzeLoginRect(string s);
-    
     NetLogin analyzeLoginRect(string s);
     bool analyzePerfectRect(string s);
-    
     UserService(){};
     ~UserService(){};
 private:

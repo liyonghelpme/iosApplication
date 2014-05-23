@@ -48,7 +48,7 @@ void UserService::setPerfect(string _userid, string _nick, string _gender, strin
     postData["gender"]=_gender;
     postData["area"]=_area;
     postData["like"]=_like;
-
+    
     string m_url = "user/" + _userid;
     //postData["phoneNumber"]=_phoneNumber;
     hm->addRequest(m_url,"PUT", postData, pTagert, selector, NULL);
@@ -60,16 +60,13 @@ NetRegist UserService::analyzeRegistRect(string s)
     NetRegist regData;
     rapidjson::Document d;
     d.Parse<0>(s.c_str());
-    const rapidjson::Value &a = d["data"];
-    
     regData.status = d["state"].GetInt();
+    const rapidjson::Value &a = d["data"];
     if(regData.status != 1){
-        //const rapidjson::Value &a = d["data"];
         int i = 0;
         regData.msg = a[i].GetString();
         //regData.msg = d["data"].GetString();
     }else{
-        regData.msg = "";
         regData.userid = a["id"].GetInt();
     }
     return regData;
@@ -82,7 +79,7 @@ NetLogin UserService::analyzeLoginRect(string s)
     d.Parse<0>(s.c_str());
 
     loginData.status = d["state"].GetInt();
-    
+
     const rapidjson::Value &a = d["data"];
     
     if(loginData.status != 0)
@@ -93,7 +90,7 @@ NetLogin UserService::analyzeLoginRect(string s)
             CCUserDefault::sharedUserDefault()->setIntegerForKey("avatar", a["like_team"].GetInt());
             CCUserDefault::sharedUserDefault()->flush();
         }
-        
+
     }
     return loginData;
 }
@@ -103,5 +100,14 @@ bool UserService::analyzePerfectRect(string s)
     rapidjson::Document d;
     d.Parse<0>(s.c_str());
     int re = d["state"].GetInt();
+    
+    if(re ==0)
+    {
+        return false;
+    }else{
+        return true;
+    }
+    return false;
 }
+
 
